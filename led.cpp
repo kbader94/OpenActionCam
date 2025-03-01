@@ -28,6 +28,7 @@ void Led::fullWhite() {
 }
 
 void Led::setAnimation(LedAnimation* anim) {
+    Serial.println("animation changed");
     animation = anim;
 }
 

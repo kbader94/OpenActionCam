@@ -1,12 +1,25 @@
 #include "error.h"
 
-ErrorHandler::ErrorHandler(Led* led_ref) : led(led_ref), blinkAnim(nullptr) {}
+ErrorHandler::ErrorHandler(Led* led) 
+    : led(led), blinkAnim(led, 0), currentCode(0) {}
 
-void ErrorHandler::throwError(int code) {
+void ErrorHandler::throwError(uint8_t code) {
+    if (currentCode == code) return;  // Prevent redundant updates from restarting the sequence
 
-    if (!blinkAnim) { // Create only if not already allocated
-        blinkAnim = new BlinkLedAnimation(led, code);
-    }
+    Serial.print("Error ");
+    Serial.println(code);
+    currentCode = code;  // Update the stored error code
 
-    led->setAnimation(blinkAnim);
+    blinkAnim.setBlinkCount(code); // Update blink count
+    led->setHue(LED_HUE_RED);
+    led->setAnimation(&blinkAnim);
+    
+}
+
+void ErrorHandler::reset() {
+    currentCode = 0;
+}
+
+uint8_t ErrorHandler::currentError() {
+    return currentCode;
 }

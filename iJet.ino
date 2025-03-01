@@ -21,7 +21,7 @@ RainbowLedAnimation rainbow(&led);
 volatile unsigned long button_press_start = 0;  // Stores when the button was pressed
 volatile unsigned long button_press_duration = 0;  // Stores how long it was held
 volatile bool button_pressed = false;
-unsigned long startup_start_time;
+unsigned long startup_start_time = 0;
 
 enum DeviceState {
     LOW_POWER,
@@ -122,8 +122,8 @@ void setup(void) {
     led.setVal(0); // turn off LED
     led_strip.show();
     
-
     sei();
+
 }
 
 void loop(void) {
@@ -133,8 +133,8 @@ void loop(void) {
 
     switch (state) {
         case LOW_POWER:
-            if (press_duration > 0) {
-                digitalWrite(POWER_PIN, HIGH);
+            if (press_duration > 0) { /* Transition to Startup if button is pressed */
+                digitalWrite(POWER_PIN, HIGH); /* Turn on power to rpi */
                 startup_start_time = millis();
                 state = STARTUP;
             }
@@ -142,8 +142,10 @@ void loop(void) {
 
         case STARTUP:
             led.setAnimation(&rainbow); 
-            if (millis() - startup_start_time > STARTUP_TIMEOUT)
+            if (millis() - startup_start_time > STARTUP_TIMEOUT){
                 errorHandler.throwError(4);  /* No communication from RPi */
+                state = ERROR;
+            }
 
             if (strcmp(serial_message, "BOOT") == 0) {
                 state = READY;
@@ -189,7 +191,9 @@ void loop(void) {
 
         case ERROR:
             if (press_duration > 0) {
+                errorHandler.reset();
                 state = LOW_POWER;
+                led.clearAnimation();
             }
             break;
     }

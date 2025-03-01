@@ -7,11 +7,16 @@
 class ErrorHandler {
 private:
     Led* led;
-    BlinkLedAnimation* blinkAnim;
+    BlinkLedAnimation blinkAnim;
+    uint8_t currentCode;
+
+
 
 public:
-    ErrorHandler(Led* led_ref);
-    void throwError(int code);
+    ErrorHandler(Led* led);
+    void throwError(uint8_t code);
+    uint8_t currentError();
+    void reset();
 };
 
 #endif /* ERROR_H */
