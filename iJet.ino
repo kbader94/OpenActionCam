@@ -4,34 +4,23 @@
 #include "led.h"
 #include "error.h"
 #include "rainbow_led_animation.h"
+#include "power_management.h"
 
-#define BUTTON_PIN        2  /* Button on PD2 (INT0), physical pin 4, arduino pin 2 */
-#define STAT_LED_PIN      3  /* WS2812 LED strip on PD3, physical pin 5, arduino pin 3*/
-#define POWER_PIN         4  /* MOSFET control (PD4), physical pin 6, arduino pin 4 */
+#define BUTTON_PIN        2  /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino pin 2 */
+#define STAT_LED_PIN      3  /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino pin 3 */
+#define POWER_PIN         4  /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino pin 4 */
 
 #define DEBOUNCE_DELAY    50   /* Button debounce delay (ms) */
 #define LONG_PRESS_TIME   1000  /* Long press threshold (ms) */
-#define STARTUP_TIMEOUT   3000  /* 5 minutes startup timeout */
+#define STARTUP_TIMEOUT   30000  /* 30 second startup timeout */
 
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
-ErrorHandler errorHandler(&led);
-RainbowLedAnimation rainbow(&led);
+PowerManagement power_management(&led, POWER_PIN); 
 
 volatile unsigned long button_press_start = 0;  // Stores when the button was pressed
 volatile unsigned long button_press_duration = 0;  // Stores how long it was held
 volatile bool button_pressed = false;
-unsigned long startup_start_time = 0;
-
-enum DeviceState {
-    LOW_POWER,
-    STARTUP,
-    READY,
-    RECORDING,
-    SHUTDOWN,
-    ERROR
-};
-DeviceState state = LOW_POWER;
 
 /*
  * Interrupt handler for button press.
@@ -49,28 +38,16 @@ void button_isr(void) {
 }
 
 /*
- * Handles button press duration.
+ * Handle button press - output press duration.
  */
 unsigned long handle_button_press(void) {
     if (button_pressed) {
+
         button_pressed = false; // Reset flag
-        Serial.print("Button held for: ");
-        Serial.print(button_press_duration);
-        Serial.println(" ms");
-
-        if (button_press_duration < LONG_PRESS_TIME) {
-            Serial.println("Short Press Detected!");
-            // Handle short press
-        } else {
-            Serial.println("Long Press Detected!");
-            // Handle long press
-        }
-
         return button_press_duration; // Return duration
     }
     return 0;  // No new button press detected
 }
-
 
 /*
  * Enters low power mode.
@@ -111,12 +88,16 @@ const char* check_serial(void) {
 
 
 void setup(void) {
+    initErrorSystem(&led, &power_management);
+
+    /* init pins */
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(POWER_PIN, OUTPUT);
 
     Serial.begin(9600);
     attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), button_isr, CHANGE);
     
+    /* init led strip */
     led_strip.begin();
     led_strip.setBrightness(8);
     led.setVal(0); // turn off LED
@@ -131,69 +112,57 @@ void loop(void) {
     const char* serial_message = check_serial();
     unsigned long press_duration = handle_button_press();
 
-    switch (state) {
-        case LOW_POWER:
+    switch (power_management.currentState()) {
+        case LOW_POWER_STATE:
             if (press_duration > 0) { /* Transition to Startup if button is pressed */
-                digitalWrite(POWER_PIN, HIGH); /* Turn on power to rpi */
-                startup_start_time = millis();
-                state = STARTUP;
+                power_management.transitionTo(STARTUP_STATE);
             }
             break;
 
-        case STARTUP:
-            led.setAnimation(&rainbow); 
-            if (millis() - startup_start_time > STARTUP_TIMEOUT){
-                errorHandler.throwError(4);  /* No communication from RPi */
-                state = ERROR;
+        case STARTUP_STATE:
+            if (millis() - power_management.startTime() > STARTUP_TIMEOUT){
+                ERROR(ERR_NO_COMM_RPI);  /* No communication from RPi */
+            }
+            if (serial_message && serial_message[0] != '\0') {
+                Serial.println((uint8_t)serial_message[0]);
+            } else {
+               // Serial.println("String is empty.");
             }
 
             if (strcmp(serial_message, "BOOT") == 0) {
-                state = READY;
-                led.clearAnimation(); 
-                led.setHue(LED_HUE_GREEN);  /* Green */
+                power_management.transitionTo(READY_STATE);
             }
             break;
 
-        case READY:
+        case READY_STATE:
             if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
-                Serial.println("START_RECORD");
-                state = RECORDING;
-                led.setHue(LED_HUE_WHITE);  /* White */
-                led.setSat(0);
+                power_management.transitionTo(RECORDING_STATE);
             } else if (press_duration >= LONG_PRESS_TIME) {
-                Serial.println("SHUTDOWN_REQUEST");
-                Serial.print("Press: ");
-                Serial.println(press_duration);
-                led.setAnimation(&rainbow); 
-                state = SHUTDOWN;
+                power_management.transitionTo(SHUTDOWN_STATE);
             }
             break;
 
-        case RECORDING:
+        case RECORDING_STATE:
             if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
-                Serial.println("STOP_RECORD");
-                state = READY;
-                led.setHue(LED_HUE_GREEN);  /* Green */
+                power_management.transitionTo(READY_STATE);
             } else if (press_duration >= LONG_PRESS_TIME) {
-                Serial.println("SHUTDOWN_REQUEST");
-                led.setAnimation(&rainbow);
-                state = SHUTDOWN;
+                power_management.transitionTo(SHUTDOWN_STATE);
             }
             break;
 
-        case SHUTDOWN:
+        case SHUTDOWN_STATE:
             if (strcmp(serial_message, "SHUTDOWN_ACK") == 0) {
-                delay(5000);
-                digitalWrite(POWER_PIN, LOW);
-                state = LOW_POWER;
+                power_management.transitionTo(SHUTDOWN_SUCCESS_STATE);
             }
             break;
 
-        case ERROR:
+        case SHUTDOWN_SUCCESS_STATE:
+            /* TODO: implement async timer and transition to LOW_POWER */
+            break;
+
+        case ERROR_STATE:
             if (press_duration > 0) {
-                errorHandler.reset();
-                state = LOW_POWER;
-                led.clearAnimation();
+                resetError();
             }
             break;
     }
