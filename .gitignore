@@ -1,0 +1,23 @@
+# Ignore build directory (generated binaries)
+build/
+
+# Ignore common temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Ignore editor backup files
+*~
+*.bak
+
+# Ignore compiled object files
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+
+# Ignore core dumps
+core
+core.*

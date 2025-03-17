@@ -10,7 +10,7 @@
 #define LED_HUE_MAGENTA   ((65535 * 300) / 360)   // 300° → ~54612
 #define LED_HUE_PURPLE    ((65535 * 270) / 360)   // 270° → ~49151
 #define LED_HUE_PINK      ((65535 * 350) / 360)   // 350° → ~63657
-#define LED_HUE_WHITE     (0)                     // White is typically full sat+val
+#define LED_HUE_WHITE     (0)                     /* White is full sat+val */
 
 #include <Adafruit_NeoPixel.h>
 #include "led_animation.h"

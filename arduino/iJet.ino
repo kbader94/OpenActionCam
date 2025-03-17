@@ -6,9 +6,11 @@
 #include "rainbow_led_animation.h"
 #include "power_management.h"
 
-#define BUTTON_PIN        2  /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino pin 2 */
-#define STAT_LED_PIN      3  /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino pin 3 */
-#define POWER_PIN         4  /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino pin 4 */
+#define BUTTON_PIN        2  /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino digital 2 */
+#define STAT_LED_PIN      3  /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino digial 3 */
+#define POWER_PIN         4  /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino digital 4 */
+#define PI_INT            7  /* RPI Interrupt on PD7, atmega328 physical pin 13, AKA arduino digital 7 */
+#define LED_EN            9  /* Enable LED on PB1, atmega physical pin 15, AKA arduino digital 9 */
 
 #define DEBOUNCE_DELAY    50   /* Button debounce delay (ms) */
 #define LONG_PRESS_TIME   1000  /* Long press threshold (ms) */
@@ -69,7 +71,7 @@ void enter_sleep_mode(void) {
  * Handles Serial Input.
  */
 const char* check_serial(void) {
-    static char serial_buffer[32];
+    static char serial_buffer[64];
     static uint8_t serial_index = 0;
 
     while (Serial.available()) {
@@ -121,15 +123,10 @@ void loop(void) {
 
         case STARTUP_STATE:
             if (millis() - power_management.startTime() > STARTUP_TIMEOUT){
-                ERROR(ERR_NO_COMM_RPI);  /* No communication from RPi */
-            }
-            if (serial_message && serial_message[0] != '\0') {
-                Serial.println((uint8_t)serial_message[0]);
-            } else {
-               // Serial.println("String is empty.");
+                ERROR(ERR_NO_COMM_RPI);  /* No contact with RPi */
             }
 
-            if (strcmp(serial_message, "BOOT") == 0) {
+            if (strcmp(serial_message, "<command>BOOT</command>") == 0) {
                 power_management.transitionTo(READY_STATE);
             }
             break;
@@ -138,7 +135,7 @@ void loop(void) {
             if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
                 power_management.transitionTo(RECORDING_STATE);
             } else if (press_duration >= LONG_PRESS_TIME) {
-                power_management.transitionTo(SHUTDOWN_STATE);
+                power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
             }
             break;
 
@@ -146,18 +143,25 @@ void loop(void) {
             if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
                 power_management.transitionTo(READY_STATE);
             } else if (press_duration >= LONG_PRESS_TIME) {
-                power_management.transitionTo(SHUTDOWN_STATE);
+                power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
             }
             break;
 
-        case SHUTDOWN_STATE:
-            if (strcmp(serial_message, "SHUTDOWN_ACK") == 0) {
-                power_management.transitionTo(SHUTDOWN_SUCCESS_STATE);
+        case SHUTDOWN_REQUEST_STATE:
+            if (millis() - power_management.shutdownRequestTime() > STARTUP_TIMEOUT){
+                ERROR(ERR_RPI_SHUTDOWN_REQ_TIMEOUT);  /* RPI did not ack shutdown request */
+            }
+            if (strcmp(serial_message, "<command>SHUTDOWN_REQ_ACK</command>") == 0) {
+                power_management.transitionTo(SHUTDOWN_REQ_ACK_STATE);
             }
             break;
 
-        case SHUTDOWN_SUCCESS_STATE:
-            /* TODO: implement async timer and transition to LOW_POWER */
+        case SHUTDOWN_REQ_ACK_STATE:
+            if (power_management.waitForShutdown()) {
+                power_management.transitionTo(LOW_POWER_STATE);
+            } else {
+                ERROR(ERR_RPI_SHUTDOWN_TIMEOUT);
+            }
             break;
 
         case ERROR_STATE:

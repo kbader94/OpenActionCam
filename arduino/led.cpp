@@ -28,7 +28,6 @@ void Led::fullWhite() {
 }
 
 void Led::setAnimation(LedAnimation* anim) {
-    Serial.println("animation changed");
     animation = anim;
 }
 
@@ -38,7 +37,6 @@ void Led::clearAnimation() {
 
 void Led::update() {
     if (animation) animation->update();
-
     led_strip->setPixelColor(index, led_strip->ColorHSV(hue, sat, val));
     led_strip->show();
 }

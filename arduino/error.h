@@ -16,10 +16,11 @@ uint8_t getCurrentError();
 #define WARN_VERBOSITY 3  /* 0 = Silent, 1 = Errors only, 2 = Errors and Warnings only, 3 = Debug, Errors, and Warnings */
 
 /* Predefined Error Codes and messages */
-#define ERR_NO_COMM_RPI        4, "No communication with RPI"
-#define ERR_SENSOR_FAILURE     3, "Sensor failure detected"
-#define ERR_OVERTEMP           5, "Overheating warning"
-#define ERR_LOW_BATTERY        6, "Low battery detected"
+
+#define ERR_NO_COMM_RPI               4, "No contact with RPI!"
+#define ERR_RPI_SHUTDOWN_REQ_TIMEOUT  5, "RPI did not acknowledge shutdown request!"
+#define ERR_RPI_SHUTDOWN_TIMEOUT      6, "Could not kill RPI - UART is still alive!"
+
 
 /* 
  * ERROR Macro - Logs error and flashes error code on LED
