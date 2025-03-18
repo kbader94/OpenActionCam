@@ -5,7 +5,7 @@ ARCH ?= x86_64  # Default to compiling for the local system
 ifeq ($(ARCH), arm64)
     CC = aarch64-linux-gnu-gcc
     CXX = aarch64-linux-gnu-g++
-    TARGET_NAME = linux_camera_arm64
+    TARGET_NAME = linux_camera
 else
     CC = gcc
     CXX = g++
