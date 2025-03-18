@@ -1,211 +1,234 @@
-/* 
- * comms.h - Portable Ardino and Linux serial communication
- * 
- */
-#include "comms.h"
-#include <string.h>
-
-/* Arduino Serial Defintions */
-#ifdef ARDUINO
-#include <Arduino.h>
-#define SERIAL_WRITE(byte) Serial.write(byte)
-#define SERIAL_AVAILABLE() Serial.available()
-#define SERIAL_READ(byte_ptr) Serial.readBytes(byte_ptr, 1)
-#else
-/* Linux Serial Definitions */
-#include <stdio.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <errno.h>
-#include <termios.h>
-
-#define SERIAL_DEVICE "/dev/ttyAMA0"  /* Raspberry Pi UART */
-static int serial_fd = -1;  /* Linux serial port file descriptor */
-
-#define SERIAL_WRITE(byte) write(serial_fd, &byte, 1)
-#define SERIAL_AVAILABLE() linux_serial_available()
-#define SERIAL_READ(byte_ptr) linux_serial_read(byte_ptr)
-#endif
-
-/* Universal Serial Definitions */
-#define BUFFER_SIZE 64
-static uint8_t rx_buffer[BUFFER_SIZE];
-static uint8_t rx_index = 0;
-static bool receiving = false;
-static uint32_t last_byte_time = 0; /* Time of last received byte */
-static uint8_t expected_length = 0; /* Expected total message length */
-
-/* Initialize Serial Communication */
-void comms_init(void) {
-#ifdef ARDUINO
-    Serial.begin(ARDUINO_BAUDRATE);
-#else
-    /* Linux Serial initialization - open serial device and apply options */
-    struct termios options;
-
-    serial_fd = open(SERIAL_DEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
-    if (serial_fd == -1) {
-        perror("Error opening serial port");
-        return;
-    }
-
-    /* Get current options */
-    tcgetattr(serial_fd, &options);
-
-    /* Set Baud Rate */
-    cfsetispeed(&options, LINUX_BAUDRATE);
-    cfsetospeed(&options, LINUX_BAUDRATE);
-
-    /* Set 8N1 (8-bit, No parity, 1 stop bit) */
-    options.c_cflag &= ~PARENB;  /* No parity */
-    options.c_cflag &= ~CSTOPB;  /* 1 stop bit */
-    options.c_cflag &= ~CSIZE;
-    options.c_cflag |= CS8;      /* 8-bit characters */
-
-    /* Disable flow control */
-    options.c_cflag &= ~CRTSCTS;
-
-    /* Set raw input/output mode */
-    options.c_lflag = 0;
-    options.c_iflag &= ~(IXON | IXOFF | IXANY);
-    options.c_oflag &= ~OPOST;
-
-    /* Apply settings */
-    tcsetattr(serial_fd, TCSANOW, &options);
-
-    /* Set non-blocking mode */
-    fcntl(serial_fd, F_SETFL, FNDELAY);
-#endif
-}
-
-/* Check available bytes (Linux) */
-#ifndef ARDUINO
-static int linux_serial_available() {
-    int bytes_available;
-    ioctl(serial_fd, FIONREAD, &bytes_available);
-    return bytes_available;
-}
-
-/* Read a single byte (Linux) */
-static int linux_serial_read(uint8_t *byte_ptr) {
-    return read(serial_fd, byte_ptr, 1);
-}
-
-/* Close serial port (Linux) */
-void comms_close(void) {
-    if (serial_fd != -1) {
-        close(serial_fd);
-        serial_fd = -1;
-    }
-}
-#endif
-
-/* 
- * =======================================================================
- *                          MESSAGE STRUCTURE
- * =======================================================================
- * Each message follows a structured format to ensure reliable parsing:
- *
- *  ┌────────┬────────┬────────┬───────────┬───────────┬───────────┬────────┐
- *  │ Start  │ Recip. │  Type  │ Length(N) │  Payload  │ Checksum  │  End   │
- *  │ (0xAA) │(1 Byte)│(1 Byte)│  (1 Byte) │ (N Bytes) │   (XOR)   │ (0x55) │
- *  ├────────┴────────┴────────┴───────────┴───────────┴───────────┴────────┤
-
- *
- * - **Start (0xAA)** → Identifies the start of a new message.
- * - **Recipient (1 byte)** → Who the message is intended for.
- * - **Type (1 byte)** → Defines whether it's a **COMMAND** or **DATA** message.
- * - **Length (1 byte)** → Specifies the payload size (0 to `MAX_PAYLOAD_SIZE`).
- * - **Payload (N bytes)** → Actual message data.
- * - **Checksum (1 byte)** → XOR of all payload bytes for integrity checking.
- * - **End (0x55)** → Marks the completion of the message.
- *
- * The function ensures **non-blocking behavior** on Arduino and Linux,
- * handling **partial reads, timeouts, buffer overflow, and corruption**.
+/*
+ * comms.c - Portable Arduino and Linux serial communication
  */
 
-bool comms_receive_message(struct Message *msg) {
-    static uint8_t byte;                /* Byte storage for incoming data */
-    static uint8_t expected_length = 0; /* Expected full message length */
-    uint32_t current_time = GET_TIME_MS();  /* Current timestamp for timeout */
-
-    /* ──────────────────────── TIMEOUT CHECK ───────────────────────── */
-    if (receiving && (current_time - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
-        receiving = false; /* Reset reception state */
-        rx_index = 0;
-        expected_length = 0;
-        return false; /* Error: Message timeout */
-    }
-
-    /* ──────────────────────── READ AVAILABLE BYTES ──────────────────────── */
-    while (SERIAL_AVAILABLE() > 0) {
-        if (SERIAL_READ(&byte) != 1) {
-            return false; /* No data read */
-        }
-
-        last_byte_time = GET_TIME_MS();  /* Update last received time */
-
-        /* ──────────────────── START BYTE DETECTION ─────────────────── */
-        if (!receiving) {
-            if (byte == MESSAGE_START) {
-                receiving = true; /* Begin receiving */
-                rx_index = 0;
-                rx_buffer[rx_index++] = byte;
-                expected_length = 0;  /* Reset expected length */
-            }
-        } else {
-            /* ─────────────────── BUFFER OVERFLOW PREVENTION ─────────────────── */
-            if (rx_index >= BUFFER_SIZE) {
-                receiving = false;
-                rx_index = 0;
-                return false; /* Error: Buffer overflow */
-            }
-
-            rx_buffer[rx_index++] = byte;
-
-            /* ──────────────────── PAYLOAD LENGTH EXTRACTION ─────────────────── */
-            if (rx_index == 4) {
-                expected_length = 6 + rx_buffer[3];  /* HEADER(4) + PAYLOAD + CHECKSUM(1) + END(1) */
-                if (expected_length > BUFFER_SIZE) {
-                    receiving = false;
-                    rx_index = 0;
-                    return false; /* Error: Message too large */
-                }
-            }
-
-            /* ─────────────────── FULL MESSAGE RECEIVED ─────────────────── */
-            if (rx_index == expected_length) {
-                /* 1. Validate End Marker */
-                if (rx_buffer[rx_index - 1] != MESSAGE_END) {
-                    receiving = false;
-                    rx_index = 0;
-                    return false; /* Error: Missing end marker */
-                }
-
-                /* 2. Validate Checksum */
-                uint8_t checksum = rx_buffer[rx_index - 2];
-                uint8_t computed_checksum = comms_calculate_checksum(&rx_buffer[4], rx_buffer[3]);
-
-                if (checksum != computed_checksum) {
-                    receiving = false;
-                    rx_index = 0;
-                    return false; /* Error: Checksum mismatch (Data corrupted) */
-                }
-
-                /* ─────────────────── COPY MESSAGE INTO STRUCT ─────────────────── */
-                msg->recipient = rx_buffer[1];
-                msg->message_type = rx_buffer[2];
-                msg->payload_length = rx_buffer[3];
-                memcpy(msg->payload, &rx_buffer[4], msg->payload_length);
-
-                /* ─────────────────── RESET BUFFER FOR NEXT MESSAGE ─────────────────── */
-                receiving = false;
-                rx_index = 0;
-                return true; /* Successfully received a valid message */
-            }
-        }
-    }
-
-    return false; /* No complete message received yet */
-}
-
+ #include "comms.h"
+ #include <string.h>
+ 
+ #if IS_MCU
+ #include "serial_wrapper.h" // Wrapper for Serial functions in C
+ #endif
+ 
+ #if IS_MCU
+ #define SERIAL_WRITE(byte) serial_write(byte)
+ #define SERIAL_AVAILABLE() serial_available()
+ #define SERIAL_READ() serial_read()
+ #else /* IS_LINUX */
+ 
+ /* Linux Serial Definitions */
+ #include <stdio.h>
+ #include <unistd.h>   // Required for read(), close()
+ #include <fcntl.h>
+ #include <errno.h>
+ #include <termios.h>
+ #include <sys/ioctl.h>  // Required for FIONREAD
+ 
+ #define SERIAL_DEVICE "/dev/ttyAMA0"  /* Raspberry Pi UART */
+ static int serial_fd = -1;  /* Ensure serial_fd is properly declared */
+ 
+ #define SERIAL_WRITE(byte) write(serial_fd, &byte, 1)
+ #define SERIAL_AVAILABLE() linux_serial_available()
+ #define SERIAL_READ() linux_serial_read()
+ #endif
+ 
+ /* Universal Serial Definitions */
+ #define BUFFER_SIZE 64
+ static uint8_t rx_buffer[BUFFER_SIZE];
+ static uint8_t rx_index = 0;
+ static bool receiving = false;
+ static uint32_t last_byte_time = 0; /* Time of last received byte */
+ /* static uint8_t expected_length = 0; Expected total message length */
+ 
+ /* Initialize Serial Communication */
+ void comms_init(void) {
+ #if IS_MCU
+     serial_begin(9600);
+ #else /* IS_LINUX */
+     struct termios options;
+     serial_fd = open(SERIAL_DEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
+     if (serial_fd == -1) {
+         perror("Error opening serial port");
+         return;
+     }
+ 
+     /* Get current options */
+     tcgetattr(serial_fd, &options);
+ 
+     /* Set Baud Rate */
+     cfsetispeed(&options, B9600);
+     cfsetospeed(&options, B9600);
+ 
+     /* Set 8N1 (8-bit, No parity, 1 stop bit) */
+     options.c_cflag &= ~PARENB;  /* No parity */
+     options.c_cflag &= ~CSTOPB;  /* 1 stop bit */
+     options.c_cflag &= ~CSIZE;
+     options.c_cflag |= CS8;      /* 8-bit characters */
+ 
+     /* Disable flow control */
+     options.c_cflag &= ~CRTSCTS;
+ 
+     /* Set raw input/output mode */
+     options.c_lflag = 0;
+     options.c_iflag &= ~(IXON | IXOFF | IXANY);
+     options.c_oflag &= ~OPOST;
+ 
+     /* Apply settings */
+     tcsetattr(serial_fd, TCSANOW, &options);
+ 
+     /* Set non-blocking mode */
+     fcntl(serial_fd, F_SETFL, FNDELAY);
+ #endif
+ }
+ 
+ /* Check available bytes (Linux) */
+ #if IS_LINUX /* IS_LINUX*/
+ static int linux_serial_available(void) {
+     int bytes_available;
+ 
+     if (serial_fd == -1) {
+         return 0;  // Prevent reading from an invalid file descriptor
+     }
+ 
+     if (ioctl(serial_fd, FIONREAD, &bytes_available) == -1) {
+         perror("Error checking available bytes");
+         return 0;
+     }
+ 
+     return bytes_available;
+ }
+ 
+ /* Read a single byte (Linux) */
+ static int linux_serial_read(void) {
+     uint8_t byte;
+ 
+     if (serial_fd == -1) {
+         return -1;  // Prevent reading from an invalid file descriptor
+     }
+ 
+     int result = read(serial_fd, &byte, 1);
+     if (result == -1) {
+         perror("Error reading from serial");
+     }
+ 
+     return (result == 1) ? byte : -1;
+ }
+ 
+ /* Close serial port (Linux) */
+ void comms_close(void) {
+     if (serial_fd != -1) {
+         close(serial_fd);
+         serial_fd = -1;
+     }
+ }
+ #endif
+ 
+ /* Calculate XOR checksum */
+ uint8_t comms_calculate_checksum(uint8_t *data, uint8_t length) {
+     uint8_t checksum = 0;
+     for (uint8_t i = 0; i < length; i++) {
+         checksum ^= data[i];  /* Simple XOR checksum */
+     }
+     return checksum;
+ }
+ 
+ /* Send a complete message */
+ void comms_send_message(uint8_t recipient, uint8_t type, uint8_t *payload, uint8_t length) {
+     if (length > MAX_PAYLOAD_SIZE) {
+         length = MAX_PAYLOAD_SIZE;
+     }
+ 
+     uint8_t frame[MAX_PAYLOAD_SIZE + 6];
+ 
+     frame[0] = MESSAGE_START;
+     frame[1] = recipient;
+     frame[2] = type;
+     frame[3] = length;
+     memcpy(&frame[4], payload, length);
+     frame[4 + length] = comms_calculate_checksum(payload, length);
+     frame[5 + length] = MESSAGE_END;
+ 
+     for (uint8_t i = 0; i < length + 6; i++) {
+         SERIAL_WRITE(frame[i]);
+     }
+ }
+ 
+ /* Receive a message */
+ bool comms_receive_message(struct Message *msg) {
+     static uint8_t byte;
+     static uint8_t expected_length = 0;
+     uint32_t current_time = GET_TIME_MS();
+ 
+     /* Timeout Check */
+     if (receiving && (current_time - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
+         receiving = false;
+         rx_index = 0;
+         expected_length = 0;
+         return false;
+     }
+ 
+     /* Read Available Bytes */
+     while (SERIAL_AVAILABLE() > 0) {
+         int byte_value = SERIAL_READ();
+         if (byte_value == -1) {
+             return false;
+         }
+         byte = (uint8_t) byte_value;
+ 
+         last_byte_time = GET_TIME_MS();
+ 
+         /* Start Byte Detection */
+         if (!receiving) {
+             if (byte == MESSAGE_START) {
+                 receiving = true;
+                 rx_index = 0;
+                 rx_buffer[rx_index++] = byte;
+                 expected_length = 0;
+             }
+         } else {
+             if (rx_index >= BUFFER_SIZE) {
+                 receiving = false;
+                 rx_index = 0;
+                 return false;
+             }
+ 
+             rx_buffer[rx_index++] = byte;
+ 
+             if (rx_index == 4) {
+                 expected_length = 6 + rx_buffer[3];
+                 if (expected_length > BUFFER_SIZE) {
+                     receiving = false;
+                     rx_index = 0;
+                     return false;
+                 }
+             }
+ 
+             if (rx_index == expected_length) {
+                 if (rx_buffer[rx_index - 1] != MESSAGE_END) {
+                     receiving = false;
+                     rx_index = 0;
+                     return false;
+                 }
+ 
+                 uint8_t checksum = rx_buffer[rx_index - 2];
+                 uint8_t computed_checksum = comms_calculate_checksum(&rx_buffer[4], rx_buffer[3]);
+ 
+                 if (checksum != computed_checksum) {
+                     receiving = false;
+                     rx_index = 0;
+                     return false;
+                 }
+ 
+                 msg->recipient = rx_buffer[1];
+                 msg->message_type = rx_buffer[2];
+                 msg->payload_length = rx_buffer[3];
+                 memcpy(msg->payload, &rx_buffer[4], msg->payload_length);
+ 
+                 receiving = false;
+                 rx_index = 0;
+                 return true;
+             }
+         }
+     }
+     return false;
+ }
+ 

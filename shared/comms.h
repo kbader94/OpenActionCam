@@ -4,6 +4,23 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Define IS_MCU Macro to determine whether code is firware on MCU or linux application */
+#if defined(ARDUINO) || defined(__AVR__) || defined(TEENSYDUINO)
+#define IS_MCU 1
+#define IS_LINUX 0
+#else
+#define IS_MCU 0
+#define IS_LINUX 1
+#endif
+
+#if IS_MCU
+#include "serial_wrapper.h"  /* Only include for firmware */ 
+#endif
+
 /* Message Framing */
 #define MESSAGE_START 0xAA
 #define MESSAGE_END   0x55
@@ -24,10 +41,10 @@
 #define COMMAND_SHUTDOWN_STARTED  0xD001
 
 /* Baud Rate Definitions */
-#ifdef ARDUINO
+#if IS_MCU
     #define ARDUINO_BAUDRATE 9600
     #define GET_TIME_MS() millis()
-#else
+#else /* IS_LINUX */
     #define LINUX_BAUDRATE B9600
     #include <time.h>
     static inline uint32_t GET_TIME_MS(void) {
@@ -76,5 +93,9 @@ uint8_t comms_calculate_checksum(uint8_t *data, uint8_t length);
 
 /* Close communication (for Linux) */
 void comms_close(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* COMMS_H */

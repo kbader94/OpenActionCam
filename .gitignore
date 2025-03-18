@@ -1,5 +1,7 @@
 # Ignore build directory (generated binaries)
 build/
+# Ignore VSCode settings
+.vscode/
 
 # Ignore common temporary files
 *.log
