@@ -6,40 +6,44 @@
  #include <string.h>
  
  #if IS_MCU
- #include "serial_wrapper.h" // Wrapper for Serial functions in C
- #endif
- 
- #if IS_MCU
+
+ #include "serial_wrapper.h"
  #define SERIAL_WRITE(byte) serial_write(byte)
  #define SERIAL_AVAILABLE() serial_available()
  #define SERIAL_READ() serial_read()
+
  #else /* IS_LINUX */
- 
- /* Linux Serial Definitions */
+
  #include <stdio.h>
- #include <unistd.h>   // Required for read(), close()
+ #include <unistd.h>
  #include <fcntl.h>
  #include <errno.h>
  #include <termios.h>
- #include <sys/ioctl.h>  // Required for FIONREAD
- 
+ #include <sys/ioctl.h>
  #define SERIAL_DEVICE "/dev/ttyAMA0"  /* Raspberry Pi UART */
  static int serial_fd = -1;  /* Ensure serial_fd is properly declared */
- 
  #define SERIAL_WRITE(byte) write(serial_fd, &byte, 1)
  #define SERIAL_AVAILABLE() linux_serial_available()
  #define SERIAL_READ() linux_serial_read()
+
  #endif
  
- /* Universal Serial Definitions */
  #define BUFFER_SIZE 64
  static uint8_t rx_buffer[BUFFER_SIZE];
  static uint8_t rx_index = 0;
  static bool receiving = false;
  static uint32_t last_byte_time = 0; /* Time of last received byte */
- /* static uint8_t expected_length = 0; Expected total message length */
- 
- /* Initialize Serial Communication */
+
+ /* 
+  * @name comms_init
+  * @brief Initializes the serial communication for both ATmega and Linux System
+  * @note This function sets up the serial port for communication.
+  *       For ATmega firmware, it initializes the serial port at 9600 baud rate.
+  *       For Linux, it opens the serial device and configures it for 9600 baud rate,
+  *       8n1, raw mode, with no flow control.
+  *     
+  * @return void
+  */
  void comms_init(void) {
  #if IS_MCU
      serial_begin(9600);
@@ -80,8 +84,8 @@
  #endif
  }
  
- /* Check available bytes (Linux) */
- #if IS_LINUX /* IS_LINUX*/
+ /* Linux serial functions */
+ #if IS_LINUX
  static int linux_serial_available(void) {
      int bytes_available;
  
@@ -97,7 +101,7 @@
      return bytes_available;
  }
  
- /* Read a single byte (Linux) */
+ /* Read a single byte */
  static int linux_serial_read(void) {
      uint8_t byte;
  
@@ -113,16 +117,23 @@
      return (result == 1) ? byte : -1;
  }
  
- /* Close serial port (Linux) */
+ /* Close serial port */
  void comms_close(void) {
      if (serial_fd != -1) {
          close(serial_fd);
          serial_fd = -1;
      }
  }
- #endif
+ #endif /* IS_LINUX */
  
- /* Calculate XOR checksum */
+ /* 
+  * Calculate Checksum for data
+  * @param data Pointer to the data array
+  * @param length Length of the data array
+  * @return Calculated checksum
+  * @brief Calculate Checksum
+  * @note Uses simple XOR checksum
+  */
  uint8_t comms_calculate_checksum(uint8_t *data, uint8_t length) {
      uint8_t checksum = 0;
      for (uint8_t i = 0; i < length; i++) {
