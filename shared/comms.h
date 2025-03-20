@@ -17,20 +17,19 @@ extern "C" {
 #define IS_LINUX 1
 #endif
 
-#if IS_MCU
-#include "serial_wrapper.h"  /* Only include for firmware */ 
-#endif
-
 /* Message Framing */
 #define MESSAGE_START 0xAA
 #define MESSAGE_END   0x55
 
-/* Message Types */
+/* Message Type Identifiers */
 #define MESSAGE_TYPE_COMMAND  0x01
 #define MESSAGE_TYPE_DATA     0x02
+#define MESSAGE_TYPE_ERROR    0x03
 
 /* Payload Constraints */
-#define MAX_PAYLOAD_SIZE 32  /* Adjust based on RAM availability */
+#define MAX_PAYLOAD_SIZE 256  /* Adjust based on RAM availability */
+/* Timeout for message reception (milliseconds) */
+#define MAX_MESSAGE_TIMEOUT_MS 100
 
 /* Command Definitions */
 #define COMMAND_RECORD_REQ_START  0xF000
@@ -40,13 +39,18 @@ extern "C" {
 #define COMMAND_SHUTDOWN_REQ      0xD000
 #define COMMAND_SHUTDOWN_STARTED  0xD001
 
-/* Baud Rate Definitions */
+/* Message Recipient Definitions */
+#define MESSAGE_RECIPIENT_LINUX 0x01
+#define MESSAGE_RECIPIENT_FIRMWARE 0x02
+
+/* Platform Specific Definitions */
 #if IS_MCU
+    #include "serial_wrapper.h" 
     #define ARDUINO_BAUDRATE 9600
     #define GET_TIME_MS() millis()
 #else /* IS_LINUX */
-    #define LINUX_BAUDRATE B9600
     #include <time.h>
+    #define LINUX_BAUDRATE B9600
     static inline uint32_t GET_TIME_MS(void) {
         struct timespec ts;
         clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -54,29 +58,35 @@ extern "C" {
     }
 #endif
 
-/* Timeout for message reception (milliseconds) */
-#define MAX_MESSAGE_TIMEOUT_MS 100
+struct Message {
+    uint8_t recipient;
+    uint8_t message_type; /* COMMAND, DATA, or ERROR */
+    uint8_t payload_length;
+    uint8_t payload[MAX_PAYLOAD_SIZE];
+};
 
-/* Command Structure */
+/* Command Structure (inherits from Message) */
 struct Command {
-    uint8_t agent;
+    struct Message message;
     uint16_t command;
 };
 
-/* Status Structure */
+/* Status Structure (inherits from Message) */
 struct Status {
-    uint8_t battery_level;
-    uint8_t battery_voltage;
+    struct Message message;
+    uint16_t battery_level;
+    uint8_t state;
+    bool charging;
     bool recording;
-    bool lights_on;
+    bool error;
+    
 };
 
-/* Message Structure */
-struct Message {
-    uint8_t recipient;
-    uint8_t message_type; /* command or data */
-    uint8_t payload_length;
-    uint8_t payload[MAX_PAYLOAD_SIZE];
+/* Error Structure (inherits from Message) */
+struct Error {
+    struct Message base;
+    uint8_t error_code;
+    char error_message[MAX_PAYLOAD_SIZE - 1]; /* Reserve space for message */
 };
 
 /* Initialize communication */
