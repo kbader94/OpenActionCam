@@ -168,6 +168,10 @@
      static uint8_t byte;
      static uint8_t expected_length = 0;
      uint32_t current_time = GET_TIME_MS();
+     
+     /* initialize message */
+     msg->message_type = 0; 
+     msg->payload_length = 0;
  
      /* Timeout Check */
      if (receiving && (current_time - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
@@ -243,3 +247,12 @@
      return false;
  }
  
+ /* Sends a command to the other platform.*/
+ void comms_send_command(uint16_t command) {
+    #if IS_MCU
+    uint8_t recipient = MESSAGE_RECIPIENT_LINUX;
+    #else
+    uint8_t recipient = MESSAGE_RECIPIENT_FIRMWARE;
+    #endif
+    comms_send_message(recipient, MESSAGE_TYPE_COMMAND, (uint8_t *)&command, sizeof(command));
+ }

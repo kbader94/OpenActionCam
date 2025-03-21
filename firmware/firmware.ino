@@ -88,7 +88,6 @@ const char* check_serial(void) {
 }
 
 
-
 void setup(void) {
     initErrorSystem(&led, &power_management);
 
@@ -111,9 +110,21 @@ void setup(void) {
 
 void loop(void) {
 
-    const char* serial_message = check_serial();
+    /* Check serial messages */
+    struct message msg;
+    comms_receive_message(&msg);
+
+    /* Handle errors transmitted from linux system */ 
+    if (msg.message_type == MESSAGE_TYPE_ERROR) {
+        struct Error *err = (struct Error *)&msg;
+        throw_error(err->error_code, err->error_message);
+        return;
+    }
+
+    /* Handle button press */
     unsigned long press_duration = handle_button_press();
 
+    /* Handle power state transitions */
     switch (power_management.currentState()) {
         case LOW_POWER_STATE:
             if (press_duration > 0) { /* Transition to Startup if button is pressed */
@@ -122,12 +133,18 @@ void loop(void) {
             break;
 
         case STARTUP_STATE:
+            /* Check for timeout */
             if (millis() - power_management.startTime() > STARTUP_TIMEOUT){
-                ERROR(ERR_NO_COMM_RPI);  /* No contact with RPi */
+                ERROR(ERR_NO_COMM_RPI);  /* Timeout - No contact with RPi */
             }
-
-            if (strcmp(serial_message, "<command>BOOT</command>") == 0) {
-                power_management.transitionTo(READY_STATE);
+            
+            /* Check for boot command from Linux System */
+            if (msg.message_type == MESSAGE_TYPE_COMMAND) {
+                struct Command *cmd = (struct Command *)&msg;
+        
+                if (cmd->command == COMMAND_BOOT) {
+                    power_management.transitionTo(READY_STATE);
+                }
             }
             break;
 
@@ -148,15 +165,22 @@ void loop(void) {
             break;
 
         case SHUTDOWN_REQUEST_STATE:
+            /* Check for timeout */
             if (millis() - power_management.shutdownRequestTime() > STARTUP_TIMEOUT){
                 ERROR(ERR_RPI_SHUTDOWN_REQ_TIMEOUT);  /* RPI did not ack shutdown request */
             }
-            if (strcmp(serial_message, "<command>SHUTDOWN_REQ_ACK</command>") == 0) {
-                power_management.transitionTo(SHUTDOWN_REQ_ACK_STATE);
+
+            /* Check for shutdown ack from Linux System */
+            if (msg.message_type == MESSAGE_TYPE_COMMAND) {
+                struct Command *cmd = (struct Command *)&msg;
+        
+                if (cmd->command == COMMAND_SHUTDOWN_REQ) {
+                    power_management.transitionTo(SHUTDOWN_STATE);
+                }
             }
             break;
 
-        case SHUTDOWN_REQ_ACK_STATE:
+        case SHUTDOWN_STATE:
             if (power_management.waitForShutdown()) {
                 power_management.transitionTo(LOW_POWER_STATE);
             } else {

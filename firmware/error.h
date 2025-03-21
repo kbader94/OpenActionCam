@@ -26,6 +26,7 @@ uint8_t getCurrentError();
  * ERROR Macro - Logs error and flashes error code on LED
  */
 #define ERROR(...) do { \
+    // TODO: remove Serial.print and send via error message to linux system
     Serial.print("[ERROR] "); Serial.print(__VA_ARGS__); Serial.println(); \
     throwError(__VA_ARGS__); \
 } while(0)
