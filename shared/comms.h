@@ -1,12 +1,13 @@
 #ifndef COMMS_H
 #define COMMS_H
 
-#include <stdint.h>
-#include <stdbool.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <stdint.h>
+#include <stdbool.h>
+#include <string.h>
 
 /* Define IS_MCU Macro to determine whether code is firware on MCU or linux application */
 #if defined(ARDUINO) || defined(__AVR__) || defined(TEENSYDUINO)
@@ -27,7 +28,7 @@ extern "C" {
 #define MESSAGE_TYPE_ERROR    0x03
 
 /* Payload Constraints */
-#define MAX_PAYLOAD_SIZE 256  /* Adjust based on RAM availability */
+#define MAX_PAYLOAD_SIZE 255  /* Adjust based on RAM availability */
 /* Timeout for message reception (milliseconds) */
 #define MAX_MESSAGE_TIMEOUT_MS 100
 
@@ -50,8 +51,16 @@ extern "C" {
     #include "serial_wrapper.h" 
     #define ARDUINO_BAUDRATE 9600
     #define GET_TIME_MS() millis()
+
 #else /* IS_LINUX */
     #include <time.h>
+    #include <stdio.h>
+    #include <unistd.h>
+    #include <fcntl.h>
+    #include <errno.h>
+    #include <termios.h>
+    #include <sys/ioctl.h>
+
     #define LINUX_BAUDRATE B9600
     static inline uint32_t GET_TIME_MS(void) {
         struct timespec ts;
@@ -96,6 +105,11 @@ void comms_init(void);
 
 /* Send a message */
 void comms_send_message(uint8_t recipient, uint8_t type, uint8_t *payload, uint8_t length);
+
+void comms_send_command(uint16_t command);
+
+/* Send an error message */
+void comms_send_error(uint8_t error_code, const char *error_message);
 
 /* Receive messages (non-blocking on Arduino) */
 bool comms_receive_message(struct Message *msg);

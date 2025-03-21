@@ -5,6 +5,7 @@
 #include "led.h"
 #include "blink_led_animation.h"
 #include "power_management.h"
+#include "comms.h"
 
 class PowerManagement;
 
@@ -26,10 +27,9 @@ uint8_t getCurrentError();
  * ERROR Macro - Logs error and flashes error code on LED
  */
 #define ERROR(...) do { \
-    // TODO: remove Serial.print and send via error message to linux system
-    Serial.print("[ERROR] "); Serial.print(__VA_ARGS__); Serial.println(); \
+    comms_send_error(__VA_ARGS__); \
     throwError(__VA_ARGS__); \
-} while(0)
+} while (0)
 
 /* 
  * WARN Macro - Logs warnings depending on verbosity

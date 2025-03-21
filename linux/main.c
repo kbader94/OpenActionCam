@@ -35,7 +35,9 @@
  
      /* Initialize communication */
      comms_init();
-     printf("Waiting for record commands from ATmega...\n");
+     
+     /* Send BOOT command to indicate system is fully running */ 
+     comms_send_command(COMMAND_BOOT);
  
      struct Message msg;
      recording_params_t params = {
@@ -60,7 +62,7 @@
                  end_record();
              }
          }
-         usleep(50000);  /* Sleep for 50ms  */
+         usleep(5000);  /* Sleep for 5ms  */
      }
  
      return 0;

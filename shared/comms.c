@@ -7,19 +7,12 @@
  
  #if IS_MCU
 
- #include "serial_wrapper.h"
  #define SERIAL_WRITE(byte) serial_write(byte)
  #define SERIAL_AVAILABLE() serial_available()
  #define SERIAL_READ() serial_read()
 
  #else /* IS_LINUX */
 
- #include <stdio.h>
- #include <unistd.h>
- #include <fcntl.h>
- #include <errno.h>
- #include <termios.h>
- #include <sys/ioctl.h>
  #define SERIAL_DEVICE "/dev/ttyAMA0"  /* Raspberry Pi UART */
  static int serial_fd = -1;  /* Ensure serial_fd is properly declared */
  #define SERIAL_WRITE(byte) write(serial_fd, &byte, 1)
@@ -113,7 +106,7 @@
      if (result == -1) {
          perror("Error reading from serial");
      }
- 
+     /* If the result's length is 1, return the value, otherwise -1 for error */
      return (result == 1) ? byte : -1;
  }
  
@@ -164,7 +157,8 @@
  }
  
  /* Receive a message */
- bool comms_receive_message(struct Message *msg) {
+ bool comms_receive_message(struct Message *msg)
+{
      static uint8_t byte;
      static uint8_t expected_length = 0;
      uint32_t current_time = GET_TIME_MS();
@@ -194,23 +188,27 @@
          /* Start Byte Detection */
          if (!receiving) {
              if (byte == MESSAGE_START) {
+                 /* Begin message reception */
                  receiving = true;
                  rx_index = 0;
                  rx_buffer[rx_index++] = byte;
-                 expected_length = 0;
+                 expected_length = 0;    
              }
          } else {
              if (rx_index >= BUFFER_SIZE) {
+                 /* Buffer overflow, dropping message */
                  receiving = false;
                  rx_index = 0;
                  return false;
              }
  
-             rx_buffer[rx_index++] = byte;
+             rx_buffer[rx_index++] = byte; /* Push byte into buffer */
  
              if (rx_index == 4) {
+                 /* Get message_length*/
                  expected_length = 6 + rx_buffer[3];
                  if (expected_length > BUFFER_SIZE) {
+                     /* Invalid message length, dropping message */
                      receiving = false;
                      rx_index = 0;
                      return false;
@@ -219,20 +217,24 @@
  
              if (rx_index == expected_length) {
                  if (rx_buffer[rx_index - 1] != MESSAGE_END) {
+                     /* Invalid message terminator, dropping message */
                      receiving = false;
                      rx_index = 0;
                      return false;
+                    
                  }
  
                  uint8_t checksum = rx_buffer[rx_index - 2];
                  uint8_t computed_checksum = comms_calculate_checksum(&rx_buffer[4], rx_buffer[3]);
  
                  if (checksum != computed_checksum) {
+                     /* Checksum mismatch, dropping message */
                      receiving = false;
                      rx_index = 0;
                      return false;
                  }
- 
+                 
+                 /* Message received successfully */
                  msg->recipient = rx_buffer[1];
                  msg->message_type = rx_buffer[2];
                  msg->payload_length = rx_buffer[3];
@@ -246,7 +248,8 @@
      }
      return false;
  }
- 
+
+
  /* Sends a command to the other platform.*/
  void comms_send_command(uint16_t command) {
     #if IS_MCU
@@ -255,4 +258,33 @@
     uint8_t recipient = MESSAGE_RECIPIENT_FIRMWARE;
     #endif
     comms_send_message(recipient, MESSAGE_TYPE_COMMAND, (uint8_t *)&command, sizeof(command));
+ }
+
+ /* Sends an error message to the other platform. */
+ void comms_send_error(uint8_t error_code, const char *error_message)
+ {
+     struct Error err_msg;
+     #if IS_MCU
+     uint8_t recipient = MESSAGE_RECIPIENT_LINUX;
+     #else
+     uint8_t recipient = MESSAGE_RECIPIENT_FIRMWARE;
+     #endif
+     
+     err_msg.base.recipient = recipient;
+     err_msg.base.message_type = MESSAGE_TYPE_ERROR;
+     err_msg.error_code = error_code;
+ 
+     /* Copy and limit error message */
+     strncpy(err_msg.error_message, error_message, sizeof(err_msg.error_message) - 1);
+     err_msg.error_message[sizeof(err_msg.error_message) - 1] = '\0';
+ 
+     /* Payload includes code + message */
+     err_msg.base.payload_length = 1 + strlen(err_msg.error_message);
+ 
+     comms_send_message(
+         err_msg.base.recipient,
+         err_msg.base.message_type,
+         (uint8_t *)&err_msg.error_code,
+         err_msg.base.payload_length
+     );
  }

@@ -111,13 +111,13 @@ void setup(void) {
 void loop(void) {
 
     /* Check serial messages */
-    struct message msg;
+    struct Message msg;
     comms_receive_message(&msg);
 
     /* Handle errors transmitted from linux system */ 
     if (msg.message_type == MESSAGE_TYPE_ERROR) {
         struct Error *err = (struct Error *)&msg;
-        throw_error(err->error_code, err->error_message);
+        throwError(err->error_code, err->error_message);
         return;
     }
 
