@@ -18,34 +18,6 @@ extern "C" {
 #define IS_LINUX 1
 #endif
 
-/* Message Framing */
-#define MESSAGE_START 0xAA
-#define MESSAGE_END   0x55
-
-/* Message Type Identifiers */
-#define MESSAGE_TYPE_COMMAND  0x01
-#define MESSAGE_TYPE_DATA     0x02
-#define MESSAGE_TYPE_ERROR    0x03
-
-/* Payload Constraints */
-#define MAX_PAYLOAD_SIZE 255  /* Adjust based on RAM availability */
-/* Timeout for message reception (milliseconds) */
-#define MAX_MESSAGE_TIMEOUT_MS 100
-
-/* Command Definitions */
-#define COMMAND_RECORD_REQ_START  0xF000
-#define COMMAND_RECORD_STARTED    0xF001
-#define COMMAND_RECORD_REQ_END    0xE000
-#define COMMAND_RECORD_ENDED      0xE001
-#define COMMAND_SHUTDOWN_REQ      0xD000
-#define COMMAND_SHUTDOWN_STARTED  0xD001
-#define COMMAND_BOOT              0xC000
-
-
-/* Message Recipient Definitions */
-#define MESSAGE_RECIPIENT_LINUX 0x01
-#define MESSAGE_RECIPIENT_FIRMWARE 0x02
-
 /* Platform Specific Definitions */
 #if IS_MCU
     #include "serial_wrapper.h" 
@@ -69,55 +41,87 @@ extern "C" {
     }
 #endif
 
-struct Message {
-    uint8_t recipient;
-    uint8_t message_type; /* COMMAND, DATA, or ERROR */
-    uint8_t payload_length;
-    uint8_t payload[MAX_PAYLOAD_SIZE];
+/* Message Framing */
+#define MESSAGE_START 0xAA
+#define MESSAGE_END   0x55
+
+/* Payload Constraints */
+#define MAX_PAYLOAD_SIZE 128  /* Adjust based on RAM availability */
+/* Timeout for message reception (milliseconds) */
+#define MAX_MESSAGE_TIMEOUT_MS 100
+
+/* Command Definitions */
+#define COMMAND_RECORD_REQ_START  0xF000
+#define COMMAND_RECORD_STARTED    0xF001
+#define COMMAND_RECORD_REQ_END    0xE000
+#define COMMAND_RECORD_ENDED      0xE001
+#define COMMAND_SHUTDOWN_REQ      0xD000
+#define COMMAND_SHUTDOWN_STARTED  0xD001
+#define COMMAND_BOOT              0xC000
+
+/* Message Recipient Definitions */
+#define MESSAGE_RECIPIENT_LINUX 0x01
+#define MESSAGE_RECIPIENT_FIRMWARE 0x02
+
+/* Message Type Identifiers */
+enum MessageType {
+    MESSAGE_TYPE_COMMAND = 0x01,
+    MESSAGE_TYPE_STATUS  = 0x02,
+    MESSAGE_TYPE_ERROR   = 0x03,
+    MESSAGE_TYPE_DATA    = 0x04
 };
 
-/* Command Structure (inherits from Message) */
-struct Command {
-    struct Message message;
+/* Message Header */
+struct MessageHeader {
+    uint8_t recipient;
+    uint8_t message_type;
+    uint8_t payload_length;
+};
+
+/* Command Payload */
+struct CommandBody {
     uint16_t command;
 };
 
-/* Status Structure (inherits from Message) */
-struct Status {
-    struct Message message;
+/* Status Payload */
+struct StatusBody {
     uint16_t battery_level;
     uint8_t state;
     bool charging;
     bool recording;
     bool error;
-    
 };
 
-/* Error Structure (inherits from Message) */
-struct Error {
-    struct Message base;
+/* Error Payload */
+struct ErrorBody {
     uint8_t error_code;
-    char error_message[MAX_PAYLOAD_SIZE - 1]; /* Reserve space for message */
+    char error_message[MAX_PAYLOAD_SIZE - 1];
 };
 
-/* Initialize communication */
+/* Full Message (Tagged Union) */
+struct Message {
+    struct MessageHeader header;
+    union {
+        struct CommandBody payload_command;
+        struct StatusBody payload_status;
+        struct ErrorBody payload_error;
+        uint8_t payload_raw[MAX_PAYLOAD_SIZE]; /* Raw access (used for MESSAGE_TYPE_DATA) */
+    } body;
+
+};
+
+/* Public API */
+
 void comms_init(void);
 
-/* Send a message */
-void comms_send_message(uint8_t recipient, uint8_t type, uint8_t *payload, uint8_t length);
+bool comms_receive_message(struct Message *msg);
 
 void comms_send_command(uint16_t command);
 
-/* Send an error message */
-void comms_send_error(uint8_t error_code, const char *error_message);
+void comms_send_error(uint8_t code, const char *message);
 
-/* Receive messages (non-blocking on Arduino) */
-bool comms_receive_message(struct Message *msg);
+void comms_send_status(const struct StatusBody *status);
 
-/* Utility function to calculate checksum */
-uint8_t comms_calculate_checksum(uint8_t *data, uint8_t length);
-
-/* Close communication (for Linux) */
 void comms_close(void);
 
 #ifdef __cplusplus

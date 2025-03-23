@@ -4,28 +4,41 @@
 
  #include "comms.h"
  #include <string.h>
- 
- #if IS_MCU
 
+ #if IS_MCU
+ static const uint8_t comms_recipient = MESSAGE_RECIPIENT_LINUX;
  #define SERIAL_WRITE(byte) serial_write(byte)
  #define SERIAL_AVAILABLE() serial_available()
  #define SERIAL_READ() serial_read()
 
  #else /* IS_LINUX */
 
- #define SERIAL_DEVICE "/dev/ttyAMA0"  /* Raspberry Pi UART */
+ #define SERIAL_DEVICE "/dev/ttyS0"  /* Raspberry Pi UART */
+ static const uint8_t comms_recipient = MESSAGE_RECIPIENT_FIRMWARE;
  static int serial_fd = -1;  /* Ensure serial_fd is properly declared */
+ static int linux_serial_read(void); 
+ static int linux_serial_available(void);
  #define SERIAL_WRITE(byte) write(serial_fd, &byte, 1)
  #define SERIAL_AVAILABLE() linux_serial_available()
  #define SERIAL_READ() linux_serial_read()
 
  #endif
  
- #define BUFFER_SIZE 64
+ #define BUFFER_SIZE (MAX_PAYLOAD_SIZE + 6)
+
  static uint8_t rx_buffer[BUFFER_SIZE];
  static uint8_t rx_index = 0;
  static bool receiving = false;
- static uint32_t last_byte_time = 0; /* Time of last received byte */
+ static uint32_t last_byte_time = 0;
+
+ static int comms_send_message(const struct Message *msg);
+ static int comms_serialize_message(const struct Message *msg, uint8_t *out_buf);
+ static int comms_deserialize_message(const uint8_t *in_buf, size_t length, struct Message *msg);
+ static uint8_t comms_calculate_checksum(const uint8_t *data, uint8_t length);
+
+/* 
+ * -------------- Public API ------------------
+ */
 
  /* 
   * @name comms_init
@@ -76,8 +89,289 @@
      fcntl(serial_fd, F_SETFL, FNDELAY);
  #endif
  }
+
+/*
+ * comms_receive_message - Read and decode one complete message from serial.
+ * @msg: Pointer to target Message structure.
+ *
+ * Returns: true if a full valid message was received, false otherwise.
+ */
+bool comms_receive_message(struct Message *msg)
+{
+    if (!msg)
+        return false;
+        
+    uint32_t now = GET_TIME_MS();
+
+    if (receiving && (now - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
+        receiving = false;
+        rx_index = 0;
+        /* Set message null */
+        memset(msg, 0, sizeof(struct Message));
+        return false;  /* Error - Timeout */
+    }
+
+    while (SERIAL_AVAILABLE() > 0) {
+        int byte = SERIAL_READ();
+        if (byte < 0) {
+            /* Set message to null */
+            memset(msg, 0, sizeof(struct Message));
+            return false;
+        }
+
+        last_byte_time = now;
+        uint8_t b = (uint8_t)byte;
+
+        if (!receiving) {
+            if (b == MESSAGE_START) {
+                rx_index = 0;
+                rx_buffer[rx_index++] = b;
+                /* Initialize message to null */
+                memset(msg, 0, sizeof(struct Message));
+                receiving = true;
+            } else {
+                rx_index = 0;
+                rx_buffer[rx_index++] = b;
+                /* Set message to null */
+                memset(msg, 0, sizeof(struct Message));
+                return false; /* Error - Corrupt start byte */
+            }
+        } else {
+            if (rx_index >= BUFFER_SIZE) {
+                receiving = false;
+                rx_index = 0;
+                /* Set message to null */
+                memset(msg, 0, sizeof(struct Message));
+                return false; /* Error - Buffer overflow */ 
+            }
+
+            rx_buffer[rx_index++] = b;
+
+            if (rx_index >= 6) {
+                uint8_t payload_len = rx_buffer[3];
+                uint8_t expected_len = 6 + payload_len;
+
+                if (rx_index == expected_len) {
+                    if (rx_buffer[expected_len - 1] != MESSAGE_END) {
+                        receiving = false;
+                        rx_index = 0;
+                        /* Set message to null */
+                        memset(msg, 0, sizeof(struct Message));
+                        return false; /* Error - Corrupt end byte */ 
+                    }
+
+                    uint8_t checksum = rx_buffer[expected_len - 2];
+                    uint8_t computed = comms_calculate_checksum(&rx_buffer[4], payload_len);
+                    if (checksum != computed) {
+                        receiving = false;
+                        rx_index = 0;
+                        /* Set message to null */
+                        memset(msg, 0, sizeof(struct Message));
+                        return false; /* Error - Bad checksum */
+                    }
+
+                    /* Deserialize into Message */
+                    return comms_deserialize_message(rx_buffer, expected_len, msg) == 0;
+                }
+            }
+        }
+    }
+
+    /* Set message to null */
+    memset(msg, 0, sizeof(struct Message));
+    return false; /* No Message received*/
+}
+
+void comms_send_command(uint16_t command)
+{
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_COMMAND;
+    msg.header.payload_length = sizeof(struct CommandBody);
+    msg.body.payload_command.command = command;
+
+    comms_send_message(&msg);
+}
+
+void comms_send_error(uint8_t error_code, const char *error_message)
+{
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_ERROR;
+
+    msg.body.payload_error.error_code = error_code;
+
+    size_t maxlen = sizeof(msg.body.payload_error.error_message);
+    if (error_message) {
+        strncpy(msg.body.payload_error.error_message, error_message, maxlen - 1);
+        msg.body.payload_error.error_message[maxlen - 1] = '\0';
+    } else {
+        msg.body.payload_error.error_message[0] = '\0';
+    }
+
+    msg.header.payload_length = 1 + strlen(msg.body.payload_error.error_message);
+
+    comms_send_message(&msg);
+}
+
+void comms_send_status(const struct StatusBody *status)
+{
+    if (!status) return;
+
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_STATUS;
+    msg.header.payload_length = sizeof(struct StatusBody);
+    memcpy(&msg.body.payload_status, status, sizeof(struct StatusBody));
+
+    comms_send_message(&msg);
+}
+
+
+/* 
+ * -------------- Internal Functions ------------------
+ */
+
+/*
+ * comms_send_message - Serializes and transmits a full Message to the other platform.
+ * @msg: Pointer to a fully populated Message struct.
+ *
+ * Returns: 0 on success, negative error code on failure.
+ */
+static int comms_send_message(const struct Message *msg)
+{
+    if (!msg) {
+        return -1;
+    }
+
+    /* Construct serialized message buffer */
+    uint8_t payload[MAX_PAYLOAD_SIZE + 6];
+    int len = comms_serialize_message(msg, payload);
+    if (len < 0) {
+        return -2; /* Serialization failed */
+    }
+
+    for (int i = 0; i < len; ++i) {
+        SERIAL_WRITE(payload[i]);
+    }
+
+    return 0;
+}
+
+ /* 
+  * comms_calculate_checksum
+  * @param data Pointer to the data array
+  * @param length Length of the data array
+  * @return Calculated checksum
+  */
+ static uint8_t comms_calculate_checksum(const uint8_t *data, uint8_t length)
+ {
+     uint8_t checksum = 0;
+     for (uint8_t i = 0; i < length; i++) {
+         checksum ^= data[i];  /* Simple XOR checksum */
+     }
+     return checksum;
+ }
  
- /* Linux serial functions */
+ /* 
+  * comms_serialize_message
+  * @param msg Pointer to the message structure
+  * @param out_buf Pointer to the output buffer
+  * @return < 0 on error, length of serialized message on success
+  */
+ static int comms_serialize_message(const struct Message *msg, uint8_t *out_buf)
+ {
+     if (!msg || !out_buf)
+         return -1;
+ 
+     out_buf[0] = MESSAGE_START;
+     out_buf[1] = msg->header.recipient;
+     out_buf[2] = msg->header.message_type;
+     out_buf[3] = msg->header.payload_length;
+ 
+     switch (msg->header.message_type) {
+     case MESSAGE_TYPE_COMMAND:
+         out_buf[4] = msg->body.payload_command.command & 0xFF;
+         out_buf[5] = (msg->body.payload_command.command >> 8) & 0xFF;
+         break;
+ 
+     case MESSAGE_TYPE_STATUS:
+         if (msg->header.payload_length < sizeof(struct StatusBody))
+             return -2;
+         memcpy(&out_buf[4], &msg->body.payload_status, sizeof(struct StatusBody));
+         break;
+ 
+     case MESSAGE_TYPE_ERROR:
+         out_buf[4] = msg->body.payload_error.error_code;
+         strncpy((char *)&out_buf[5], msg->body.payload_error.error_message, msg->header.payload_length - 1);
+         break;
+ 
+     case MESSAGE_TYPE_DATA:
+         memcpy(&out_buf[4], msg->body.payload_raw, msg->header.payload_length);
+         break;
+ 
+     default:
+         return -3;
+     }
+ 
+     uint8_t checksum = comms_calculate_checksum(&out_buf[4], msg->header.payload_length);
+     out_buf[4 + msg->header.payload_length] = checksum;
+     out_buf[5 + msg->header.payload_length] = MESSAGE_END;
+ 
+     return 6 + msg->header.payload_length; // total length
+ }
+
+ /* 
+  * comms_deserialize_message
+  * @param in_buf Pointer to the input buffer
+  * @param length Length of the input buffer
+  * @param msg Pointer to the message structure to fill
+  * @return < 0 on error, 0 on success
+  */
+ static int comms_deserialize_message(const uint8_t *in_buf, size_t length, struct Message *msg)
+ {
+     if (!in_buf || !msg || length < 6)
+         return -1;
+ 
+     if (in_buf[0] != MESSAGE_START || in_buf[length - 1] != MESSAGE_END)
+         return -2;
+ 
+     msg->header.recipient = in_buf[1];
+     msg->header.message_type = in_buf[2];
+     msg->header.payload_length = in_buf[3];
+ 
+     uint8_t checksum = in_buf[4 + msg->header.payload_length];
+     uint8_t computed = comms_calculate_checksum(&in_buf[4], msg->header.payload_length);
+     if (checksum != computed)
+         return -3;
+ 
+     switch (msg->header.message_type) {
+     case MESSAGE_TYPE_COMMAND:
+         msg->body.payload_command.command = in_buf[4] | (in_buf[5] << 8);
+         break;
+ 
+     case MESSAGE_TYPE_STATUS:
+         memcpy(&msg->body.payload_status, &in_buf[4], sizeof(struct StatusBody));
+         break;
+ 
+     case MESSAGE_TYPE_ERROR:
+         msg->body.payload_error.error_code = in_buf[4];
+         strncpy(msg->body.payload_error.error_message, (char *)&in_buf[5], msg->header.payload_length - 1);
+         msg->body.payload_error.error_message[msg->header.payload_length - 1] = '\0';
+         break;
+ 
+     case MESSAGE_TYPE_DATA:
+         memcpy(msg->body.payload_raw, &in_buf[4], msg->header.payload_length);
+         break;
+ 
+     default:
+         return -4;
+     }
+ 
+     return 0;
+ }
+ 
+ /* Internal Linux serial functions */
  #if IS_LINUX
  static int linux_serial_available(void) {
      int bytes_available;
@@ -117,174 +411,13 @@
          serial_fd = -1;
      }
  }
+
+ #else
+
+ /* Close serial port */
+ void comms_close(void) {
+    /* Placeholder */
+ }
+
  #endif /* IS_LINUX */
  
- /* 
-  * Calculate Checksum for data
-  * @param data Pointer to the data array
-  * @param length Length of the data array
-  * @return Calculated checksum
-  * @brief Calculate Checksum
-  * @note Uses simple XOR checksum
-  */
- uint8_t comms_calculate_checksum(uint8_t *data, uint8_t length) {
-     uint8_t checksum = 0;
-     for (uint8_t i = 0; i < length; i++) {
-         checksum ^= data[i];  /* Simple XOR checksum */
-     }
-     return checksum;
- }
- 
- /* Send a complete message */
- void comms_send_message(uint8_t recipient, uint8_t type, uint8_t *payload, uint8_t length) {
-     if (length > MAX_PAYLOAD_SIZE) {
-         length = MAX_PAYLOAD_SIZE;
-     }
- 
-     uint8_t frame[MAX_PAYLOAD_SIZE + 6];
- 
-     frame[0] = MESSAGE_START;
-     frame[1] = recipient;
-     frame[2] = type;
-     frame[3] = length;
-     memcpy(&frame[4], payload, length);
-     frame[4 + length] = comms_calculate_checksum(payload, length);
-     frame[5 + length] = MESSAGE_END;
- 
-     for (uint8_t i = 0; i < length + 6; i++) {
-         SERIAL_WRITE(frame[i]);
-     }
- }
- 
- /* Receive a message */
- bool comms_receive_message(struct Message *msg)
-{
-     static uint8_t byte;
-     static uint8_t expected_length = 0;
-     uint32_t current_time = GET_TIME_MS();
-     
-     /* initialize message */
-     msg->message_type = 0; 
-     msg->payload_length = 0;
- 
-     /* Timeout Check */
-     if (receiving && (current_time - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
-         receiving = false;
-         rx_index = 0;
-         expected_length = 0;
-         return false;
-     }
- 
-     /* Read Available Bytes */
-     while (SERIAL_AVAILABLE() > 0) {
-         int byte_value = SERIAL_READ();
-         if (byte_value == -1) {
-             return false;
-         }
-         byte = (uint8_t) byte_value;
- 
-         last_byte_time = GET_TIME_MS();
- 
-         /* Start Byte Detection */
-         if (!receiving) {
-             if (byte == MESSAGE_START) {
-                 /* Begin message reception */
-                 receiving = true;
-                 rx_index = 0;
-                 rx_buffer[rx_index++] = byte;
-                 expected_length = 0;    
-             }
-         } else {
-             if (rx_index >= BUFFER_SIZE) {
-                 /* Buffer overflow, dropping message */
-                 receiving = false;
-                 rx_index = 0;
-                 return false;
-             }
- 
-             rx_buffer[rx_index++] = byte; /* Push byte into buffer */
- 
-             if (rx_index == 4) {
-                 /* Get message_length*/
-                 expected_length = 6 + rx_buffer[3];
-                 if (expected_length > BUFFER_SIZE) {
-                     /* Invalid message length, dropping message */
-                     receiving = false;
-                     rx_index = 0;
-                     return false;
-                 }
-             }
- 
-             if (rx_index == expected_length) {
-                 if (rx_buffer[rx_index - 1] != MESSAGE_END) {
-                     /* Invalid message terminator, dropping message */
-                     receiving = false;
-                     rx_index = 0;
-                     return false;
-                    
-                 }
- 
-                 uint8_t checksum = rx_buffer[rx_index - 2];
-                 uint8_t computed_checksum = comms_calculate_checksum(&rx_buffer[4], rx_buffer[3]);
- 
-                 if (checksum != computed_checksum) {
-                     /* Checksum mismatch, dropping message */
-                     receiving = false;
-                     rx_index = 0;
-                     return false;
-                 }
-                 
-                 /* Message received successfully */
-                 msg->recipient = rx_buffer[1];
-                 msg->message_type = rx_buffer[2];
-                 msg->payload_length = rx_buffer[3];
-                 memcpy(msg->payload, &rx_buffer[4], msg->payload_length);
- 
-                 receiving = false;
-                 rx_index = 0;
-                 return true;
-             }
-         }
-     }
-     return false;
- }
-
-
- /* Sends a command to the other platform.*/
- void comms_send_command(uint16_t command) {
-    #if IS_MCU
-    uint8_t recipient = MESSAGE_RECIPIENT_LINUX;
-    #else
-    uint8_t recipient = MESSAGE_RECIPIENT_FIRMWARE;
-    #endif
-    comms_send_message(recipient, MESSAGE_TYPE_COMMAND, (uint8_t *)&command, sizeof(command));
- }
-
- /* Sends an error message to the other platform. */
- void comms_send_error(uint8_t error_code, const char *error_message)
- {
-     struct Error err_msg;
-     #if IS_MCU
-     uint8_t recipient = MESSAGE_RECIPIENT_LINUX;
-     #else
-     uint8_t recipient = MESSAGE_RECIPIENT_FIRMWARE;
-     #endif
-     
-     err_msg.base.recipient = recipient;
-     err_msg.base.message_type = MESSAGE_TYPE_ERROR;
-     err_msg.error_code = error_code;
- 
-     /* Copy and limit error message */
-     strncpy(err_msg.error_message, error_message, sizeof(err_msg.error_message) - 1);
-     err_msg.error_message[sizeof(err_msg.error_message) - 1] = '\0';
- 
-     /* Payload includes code + message */
-     err_msg.base.payload_length = 1 + strlen(err_msg.error_message);
- 
-     comms_send_message(
-         err_msg.base.recipient,
-         err_msg.base.message_type,
-         (uint8_t *)&err_msg.error_code,
-         err_msg.base.payload_length
-     );
- }

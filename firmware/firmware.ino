@@ -6,33 +6,37 @@
 #include "rainbow_led_animation.h"
 #include "power_management.h"
 
-#define BUTTON_PIN        2  /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino digital 2 */
-#define STAT_LED_PIN      3  /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino digial 3 */
-#define POWER_PIN         4  /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino digital 4 */
-#define PI_INT            7  /* RPI Interrupt on PD7, atmega328 physical pin 13, AKA arduino digital 7 */
-#define LED_EN            9  /* Enable LED on PB1, atmega physical pin 15, AKA arduino digital 9 */
+#define BUTTON_PIN 2   /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino digital 2 */
+#define STAT_LED_PIN 3 /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino digial 3 */
+#define POWER_PIN 4    /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino digital 4 */
+#define PI_INT 7       /* RPI Interrupt on PD7, atmega328 physical pin 13, AKA arduino digital 7 */
+#define LED_EN 9       /* Enable LED on PB1, atmega physical pin 15, AKA arduino digital 9 */
 
-#define DEBOUNCE_DELAY    50   /* Button debounce delay (ms) */
-#define LONG_PRESS_TIME   1000  /* Long press threshold (ms) */
-#define STARTUP_TIMEOUT   30000  /* 30 second startup timeout */
+#define DEBOUNCE_DELAY 50     /* Button debounce delay (ms) */
+#define LONG_PRESS_TIME 1000  /* Long press threshold (ms) */
+#define STARTUP_TIMEOUT 30000 /* 30 second startup timeout */
 
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
-PowerManagement power_management(&led, POWER_PIN); 
+PowerManagement power_management(&led, POWER_PIN);
 
-volatile unsigned long button_press_start = 0;  // Stores when the button was pressed
-volatile unsigned long button_press_duration = 0;  // Stores how long it was held
+volatile unsigned long button_press_start = 0;    // Stores when the button was pressed
+volatile unsigned long button_press_duration = 0; // Stores how long it was held
 volatile bool button_pressed = false;
 
 /*
  * Interrupt handler for button press.
  */
-void button_isr(void) {
-    if (digitalRead(BUTTON_PIN) == LOW) {
+void button_isr(void)
+{
+    if (digitalRead(BUTTON_PIN) == LOW)
+    {
         // Button just pressed (falling edge)
         button_press_start = millis();
         button_pressed = false; // Reset state
-    } else {
+    }
+    else
+    {
         // Button just released (rising edge)
         button_press_duration = millis() - button_press_start;
         button_pressed = true; // Mark press as handled
@@ -42,20 +46,23 @@ void button_isr(void) {
 /*
  * Handle button press - output press duration.
  */
-unsigned long handle_button_press(void) {
-    if (button_pressed) {
+unsigned long handle_button_press(void)
+{
+    if (button_pressed)
+    {
 
-        button_pressed = false; // Reset flag
+        button_pressed = false;       // Reset flag
         return button_press_duration; // Return duration
     }
-    return 0;  // No new button press detected
+    return 0; // No new button press detected
 }
 
 /*
  * Enters low power mode.
  */
-void enter_sleep_mode(void) {
-    // led.setColor(0x00000000); /*  */ 
+void enter_sleep_mode(void)
+{
+    // led.setColor(0x00000000); /*  */
     // led.update();
 
     // attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), button_isr, FALLING);
@@ -70,13 +77,16 @@ void enter_sleep_mode(void) {
 /*
  * Handles Serial Input.
  */
-const char* check_serial(void) {
+const char *check_serial(void)
+{
     static char serial_buffer[64];
     static uint8_t serial_index = 0;
 
-    while (Serial.available()) {
+    while (Serial.available())
+    {
         char c = Serial.read();
-        if (c == '\n') {
+        if (c == '\n')
+        {
             serial_buffer[serial_index] = '\0';
             serial_index = 0;
             return serial_buffer;
@@ -87,8 +97,8 @@ const char* check_serial(void) {
     return "";
 }
 
-
-void setup(void) {
+void setup(void)
+{
     initErrorSystem(&led, &power_management);
 
     /* init pins */
@@ -97,106 +107,134 @@ void setup(void) {
 
     Serial.begin(9600);
     attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), button_isr, CHANGE);
-    
+
     /* init led strip */
     led_strip.begin();
     led_strip.setBrightness(8);
     led.setVal(0); // turn off LED
     led_strip.show();
-    
+
     sei();
-
 }
+void loop(void)
+{
+    struct Message msg = {0};
 
-void loop(void) {
-
-    /* Check serial messages */
-    struct Message msg;
-    comms_receive_message(&msg);
-
-    /* Handle errors transmitted from linux system */ 
-    if (msg.message_type == MESSAGE_TYPE_ERROR) {
-        struct Error *err = (struct Error *)&msg;
-        throwError(err->error_code, err->error_message);
-        return;
+    /* Receive serial message AND process error messages */
+    if (comms_receive_message(&msg) && msg.header.message_type == MESSAGE_TYPE_ERROR)
+    {
+        throwError(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
+    }
+    
+    /* Message DEBUG */
+    if (msg.header.message_type != 0x00) {
+        Serial.print("Received message type: 0x");
+        Serial.println(msg.header.message_type, HEX);
+    
+        if (msg.header.message_type == MESSAGE_TYPE_ERROR) {
+            Serial.print("Error code: ");
+            Serial.println(msg.body.payload_error.error_code);
+    
+            // SAFELY print error string (guard null terminator)
+            for (uint8_t i = 0; i < msg.header.payload_length - 1 && i < sizeof(msg.body.payload_error.error_message); i++) {
+                char c = msg.body.payload_error.error_message[i];
+                if (c == '\0') break;
+                Serial.print(c);
+            }
+            Serial.println();
+        }
+    
+        Serial.println("Raw message (hex):");
+        uint8_t *msg_bytes = (uint8_t *)&msg;
+        for (size_t i = 0; i < sizeof(struct Message); i++) {
+            if (i % 16 == 0) Serial.println();
+            if (msg_bytes[i] < 0x10) Serial.print('0');
+            Serial.print(msg_bytes[i], HEX);
+            Serial.print(' ');
+        }
+        Serial.println();
     }
 
-    /* Handle button press */
     unsigned long press_duration = handle_button_press();
 
-    /* Handle power state transitions */
-    switch (power_management.currentState()) {
-        case LOW_POWER_STATE:
-            if (press_duration > 0) { /* Transition to Startup if button is pressed */
-                power_management.transitionTo(STARTUP_STATE);
-            }
-            break;
+    switch (power_management.currentState())
+    {
+    case LOW_POWER_STATE:
+        if (press_duration > 0)
+        {
+            power_management.transitionTo(STARTUP_STATE);
+        }
+        break;
 
-        case STARTUP_STATE:
-            /* Check for timeout */
-            if (millis() - power_management.startTime() > STARTUP_TIMEOUT){
-                ERROR(ERR_NO_COMM_RPI);  /* Timeout - No contact with RPi */
-            }
-            
-            /* Check for boot command from Linux System */
-            if (msg.message_type == MESSAGE_TYPE_COMMAND) {
-                struct Command *cmd = (struct Command *)&msg;
-        
-                if (cmd->command == COMMAND_BOOT) {
-                    power_management.transitionTo(READY_STATE);
-                }
-            }
-            break;
+    case STARTUP_STATE:
+        if (millis() - power_management.startTime() > STARTUP_TIMEOUT)
+        {
+            ERROR(ERR_NO_COMM_RPI);
+        }
 
-        case READY_STATE:
-            if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
-                power_management.transitionTo(RECORDING_STATE);
-            } else if (press_duration >= LONG_PRESS_TIME) {
-                power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
-            }
-            break;
+        if (msg.header.message_type == MESSAGE_TYPE_COMMAND &&
+            msg.body.payload_command.command == COMMAND_BOOT)
+        {
+            power_management.transitionTo(READY_STATE);
+        }
+        break;
 
-        case RECORDING_STATE:
-            if (press_duration > 0 && press_duration < LONG_PRESS_TIME) {
-                power_management.transitionTo(READY_STATE);
-            } else if (press_duration >= LONG_PRESS_TIME) {
-                power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
-            }
-            break;
+    case READY_STATE:
+        if (press_duration > 0 && press_duration < LONG_PRESS_TIME)
+        {
+            power_management.transitionTo(RECORDING_STATE);
+        }
+        else if (press_duration >= LONG_PRESS_TIME)
+        {
+            power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
+        }
+        break;
 
-        case SHUTDOWN_REQUEST_STATE:
-            /* Check for timeout */
-            if (millis() - power_management.shutdownRequestTime() > STARTUP_TIMEOUT){
-                ERROR(ERR_RPI_SHUTDOWN_REQ_TIMEOUT);  /* RPI did not ack shutdown request */
-            }
+    case RECORDING_STATE:
+        if (press_duration > 0 && press_duration < LONG_PRESS_TIME)
+        {
+            power_management.transitionTo(READY_STATE);
+        }
+        else if (press_duration >= LONG_PRESS_TIME)
+        {
+            power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
+        }
+        break;
 
-            /* Check for shutdown ack from Linux System */
-            if (msg.message_type == MESSAGE_TYPE_COMMAND) {
-                struct Command *cmd = (struct Command *)&msg;
-        
-                if (cmd->command == COMMAND_SHUTDOWN_REQ) {
-                    power_management.transitionTo(SHUTDOWN_STATE);
-                }
-            }
-            break;
+    case SHUTDOWN_REQUEST_STATE:
+        if (millis() - power_management.shutdownRequestTime() > STARTUP_TIMEOUT)
+        {
+            ERROR(ERR_RPI_SHUTDOWN_REQ_TIMEOUT);
+        }
 
-        case SHUTDOWN_STATE:
-            if (power_management.waitForShutdown()) {
-                power_management.transitionTo(LOW_POWER_STATE);
-            } else {
-                ERROR(ERR_RPI_SHUTDOWN_TIMEOUT);
-            }
-            break;
+        if (msg.header.message_type == MESSAGE_TYPE_COMMAND &&
+            msg.body.payload_command.command == COMMAND_SHUTDOWN_REQ)
+        {
+            power_management.transitionTo(SHUTDOWN_STATE);
+        }
+        break;
 
-        case ERROR_STATE:
-            if (press_duration > 0) {
-                resetError();
-            }
-            break;
+    case SHUTDOWN_STATE:
+        if (power_management.waitForShutdown())
+        {
+            power_management.transitionTo(LOW_POWER_STATE);
+        }
+        else
+        {
+            ERROR(ERR_RPI_SHUTDOWN_TIMEOUT);
+        }
+        break;
+
+    case ERROR_STATE:
+        if (press_duration > 0)
+        {
+            resetError();
+        }
+        break;
     }
 
     led.update();
 
-   // if (state == LOW_POWER)
-  //      enter_sleep_mode();
+    // if (state == LOW_POWER)
+    //      enter_sleep_mode();
 }

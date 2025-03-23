@@ -10,7 +10,9 @@
  #include <unistd.h>
  #include <sys/wait.h>
  #include <sys/statvfs.h>
- 
+ #include <pthread.h>
+ #include <fcntl.h>
+
  #define OUTPUT_DIR "/home/pi/shared"
  #define RAW_VIDEO OUTPUT_DIR"/video.264"
  #define ENCODED_VIDEO OUTPUT_DIR"/video.mp4"
@@ -18,6 +20,31 @@
  
  static volatile sig_atomic_t recording;
  static pid_t libcamera_pid;
+ static pthread_t stderr_thread;
+ static int stderr_fd = -1;
+
+ static void *stderr_monitor_thread(void *arg)
+{
+    char buffer[256];
+    ssize_t n;
+
+    while ((n = read(stderr_fd, buffer, sizeof(buffer) - 1)) > 0) {
+        buffer[n] = '\0';
+        if (strstr(buffer, "no cameras available")) {
+            ERROR(61, "No camera detected.");
+            kill(libcamera_pid, SIGINT);
+            recording = 0;
+            break;
+        }
+
+        // You can log this if needed
+        // fprintf(stderr, "[libcamera] %s", buffer);
+    }
+
+    close(stderr_fd);
+    return NULL;
+}
+ 
  
  /*
   * get_available_space - Check available disk space in MB.
@@ -34,35 +61,6 @@
      }
  
      return (stat.f_bavail * stat.f_frsize) / (1024 * 1024); /* Convert to MB */
- }
- 
- /*
-  * check_camera_available - Check if a camera is connected.
-  *
-  * Uses libcamera-vid to list available cameras.
-  *
-  * Returns 1 if a camera is found, 0 otherwise.
-  */
- static int check_camera_available(void)
- {
-     FILE *fp;
-     char buffer[256];
- 
-     fp = popen("libcamera-vid --list-cameras 2>&1", "r");
-     if (!fp) {
-         ERROR(60, "Failed to check camera availability.");
-         return 0;
-     }
- 
-     while (fgets(buffer, sizeof(buffer), fp)) {
-         if (strstr(buffer, "no cameras available")) {
-             pclose(fp);
-             return 0;  /* Camera not detected */
-         }
-     }
- 
-     pclose(fp);
-     return 1;  /* Camera detected */
  }
  
  /*
@@ -92,69 +90,83 @@
   * start_record - Start video recording.
   * @params: Recording parameters.
   */
- void start_record(recording_params_t params)
- {
-     int width, height, free_space;
- 
-     if (recording) {
-         WARN("Already recording! Previous session may not have ended properly.");
-         return;
-     }
- 
-     if (!check_camera_available()) {
-         ERROR(61, "No camera detected.");
-         return;
-     }
- 
-     free_space = get_available_space();
-     if (free_space < 0)
-         return; /* Error checking storage space */
- 
-     if (free_space < MIN_FREE_SPACE_MB) {
-         ERROR(51, "Insufficient storage space! Only %dMB available.", free_space);
-         return;
-     }
- 
-     if (sscanf(params.resolution, "%dx%d", &width, &height) != 2) {
-         ERROR(52, "Invalid resolution format.");
-         return;
-     }
- 
-     system("mkdir -p " OUTPUT_DIR);
- 
-     char libcamera_cmd[1024];
-     snprintf(libcamera_cmd, sizeof(libcamera_cmd),
-              "libcamera-vid --framerate %d --width %d --height %d "
-              "--bitrate %d --awb %s --gain %.2f --shutter %d --lens-position %.2f -o \"%s\" -t 0 -n",
-              params.fps, width, height, params.bitrate,
-              params.awb, params.gain, params.shutter, params.lens_position,
-              RAW_VIDEO);
- 
-     printf("Starting recording...\n");
-     printf("Command: %s\n", libcamera_cmd);
- 
-     libcamera_pid = fork();
-     if (libcamera_pid == 0) {
-         execl("/bin/sh", "sh", "-c", libcamera_cmd, NULL);
-         exit(EXIT_FAILURE);
-     }
- 
-     sleep(2);
-     int status;
-     if (waitpid(libcamera_pid, &status, WNOHANG) > 0) {
-         ERROR(70, "Recording failed to start.");
-         recording = 0;
-         return;
-     }
- 
-     recording = 1;
- }
- 
+
+  void start_record(recording_params_t params)
+  {
+      int width, height;
+      int pipefd[2];
+      int status;
+  
+      if (recording) {
+          WARN("Already recording!");
+          return;
+      }
+  
+      if ((get_available_space() < MIN_FREE_SPACE_MB)) {
+          ERROR(51, "Insufficient storage space!");
+          return;
+      }
+  
+      if (sscanf(params.resolution, "%dx%d", &width, &height) != 2) {
+          ERROR(52, "Invalid resolution format.");
+          return;
+      }
+  
+      system("mkdir -p " OUTPUT_DIR);
+  
+      char libcamera_cmd[1024];
+      snprintf(libcamera_cmd, sizeof(libcamera_cmd),
+               "libcamera-vid --framerate %d --width %d --height %d "
+               "--bitrate %d --awb %s --gain %.2f --shutter %d --lens-position %.2f -o \"%s\" -t 0 -n",
+               params.fps, width, height, params.bitrate,
+               params.awb, params.gain, params.shutter, params.lens_position,
+               RAW_VIDEO);
+  
+      if (pipe(pipefd) == -1) {
+          ERROR(53, "Failed to create pipe.");
+          return;
+      }
+  
+      libcamera_pid = fork();
+      if (libcamera_pid == 0) {
+          close(pipefd[0]); // Close read end
+          dup2(pipefd[1], STDERR_FILENO);
+          close(pipefd[1]);
+  
+          execl("/bin/sh", "sh", "-c", libcamera_cmd, NULL);
+          perror("execl");
+          exit(EXIT_FAILURE);
+      }
+  
+      // Parent
+      close(pipefd[1]);
+      stderr_fd = pipefd[0];
+  
+      // Launch monitor thread
+      if (pthread_create(&stderr_thread, NULL, stderr_monitor_thread, NULL) != 0) {
+          ERROR(54, "Failed to create monitor thread.");
+          kill(libcamera_pid, SIGINT);
+          waitpid(libcamera_pid, NULL, 0);
+          return;
+      }
+  
+      sleep(2); // Let it run briefly
+  
+      if (waitpid(libcamera_pid, &status, WNOHANG) > 0) {
+          ERROR(70, "Recording failed to start.");
+          return;
+      }
+  
+      recording = 1;
+      DEBUG("Recording started successfully.");
+  }
+
  /*
   * end_record - Stop recording if active, then transcode the video.
   */
  void end_record(void)
  {
+
      if (!recording) {
          WARN("Tried to stop recording, but no active recording found.");
          return;
@@ -162,15 +174,15 @@
  
      printf("Stopping recording...\n");
  
-     if (libcamera_pid > 0) {
-         kill(libcamera_pid, SIGINT);
-         waitpid(libcamera_pid, NULL, 0);
-     }
+     kill(libcamera_pid, SIGINT);
+     waitpid(libcamera_pid, NULL, 0);
+     pthread_join(stderr_thread, NULL);
  
      printf("Recording stopped. Flushing data...\n");
      system("sync");
  
      recording = 0;
      transcode();
+     
  }
  

@@ -18,29 +18,6 @@
 #define LOG_VERBOSITY LOG_LEVEL_DEBUG
 #endif
 
-/*
- * comms_throw_error - Sends an error message to the ATmega.
- * @recipient: The intended recipient (e.g., 0x01 for the ATmega).
- * @error_code: The error code (matches predefined error codes).
- * @error_message: Human-readable error description.
- */
-static inline void comms_throw_error(uint8_t error_code, const char *error_message)
-{
-    struct Error err_msg;
-
-    /* Initialize error message structure */
-    err_msg.base.recipient = MESSAGE_RECIPIENT_FIRMWARE;
-    err_msg.base.message_type = MESSAGE_TYPE_ERROR;
-    err_msg.base.payload_length = sizeof(uint8_t) + strlen(error_message);
-
-    err_msg.error_code = error_code;
-    strncpy(err_msg.error_message, error_message, sizeof(err_msg.error_message) - 1);
-    err_msg.error_message[sizeof(err_msg.error_message) - 1] = '\0'; /* Ensure null termination */
-
-    /* Send error message */
-    comms_send_message(err_msg.base.recipient, err_msg.base.message_type, 
-                       (uint8_t *)&err_msg.error_code, err_msg.base.payload_length);
-}
 
 /*
  * ERROR Macro - Logs error messages and sends them to the ATmega.
@@ -51,7 +28,7 @@ static inline void comms_throw_error(uint8_t error_code, const char *error_messa
     snprintf(error_msg, sizeof(error_msg), "[ERROR %d] " message, code, ##__VA_ARGS__); \
     fprintf(stderr, "%s\n", error_msg); \
     syslog(LOG_ERR, "%s", error_msg); \
-    comms_throw_error(0x01, code, error_msg); /* Send error to ATmega */ \
+    comms_send_error(code, error_msg); /* Send error to ATmega */ \
 } while (0)
 
 /*
