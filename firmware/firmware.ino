@@ -119,42 +119,14 @@ void setup(void)
 void loop(void)
 {
     struct Message msg = {0};
+    comms_receive_message(&msg);
 
     /* Receive serial message AND process error messages */
-    if (comms_receive_message(&msg) && msg.header.message_type == MESSAGE_TYPE_ERROR)
+    if (msg.header.message_type == MESSAGE_TYPE_ERROR)
     {
         throwError(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
     }
     
-    /* Message DEBUG */
-    if (msg.header.message_type != 0x00) {
-        Serial.print("Received message type: 0x");
-        Serial.println(msg.header.message_type, HEX);
-    
-        if (msg.header.message_type == MESSAGE_TYPE_ERROR) {
-            Serial.print("Error code: ");
-            Serial.println(msg.body.payload_error.error_code);
-    
-            // SAFELY print error string (guard null terminator)
-            for (uint8_t i = 0; i < msg.header.payload_length - 1 && i < sizeof(msg.body.payload_error.error_message); i++) {
-                char c = msg.body.payload_error.error_message[i];
-                if (c == '\0') break;
-                Serial.print(c);
-            }
-            Serial.println();
-        }
-    
-        Serial.println("Raw message (hex):");
-        uint8_t *msg_bytes = (uint8_t *)&msg;
-        for (size_t i = 0; i < sizeof(struct Message); i++) {
-            if (i % 16 == 0) Serial.println();
-            if (msg_bytes[i] < 0x10) Serial.print('0');
-            Serial.print(msg_bytes[i], HEX);
-            Serial.print(' ');
-        }
-        Serial.println();
-    }
-
     unsigned long press_duration = handle_button_press();
 
     switch (power_management.currentState())

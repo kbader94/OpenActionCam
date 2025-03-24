@@ -112,15 +112,15 @@ struct Message {
 
 /* Public API */
 
-void comms_init(void);
+int comms_init(void);
 
-bool comms_receive_message(struct Message *msg);
+int comms_receive_message(struct Message *msg);
 
-void comms_send_command(uint16_t command);
+int comms_send_command(uint16_t command);
 
-void comms_send_error(uint8_t code, const char *message);
+int comms_send_error(uint8_t code, const char *message);
 
-void comms_send_status(const struct StatusBody *status);
+int comms_send_status(const struct StatusBody *status);
 
 void comms_close(void);
 

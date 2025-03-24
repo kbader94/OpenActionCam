@@ -45,7 +45,7 @@ echo "=================================="
 mkdir -p "$MAKEFILE_DIR/$BUILD_DIR"
 
 # Run Make inside the linux directory
-make -C "$MAKEFILE_DIR" ARCH=arm64
+make -C "$MAKEFILE_DIR" ARCH=arm64 DEBUG=1
 
 # Check if Make was successful
 if [[ $? -ne 0 ]]; then

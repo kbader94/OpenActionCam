@@ -48,9 +48,9 @@
   *       For Linux, it opens the serial device and configures it for 9600 baud rate,
   *       8n1, raw mode, with no flow control.
   *     
-  * @return void
+  * @return 0 on success, -1 on error
   */
- void comms_init(void) {
+ int comms_init(void) {
  #if IS_MCU
      serial_begin(9600);
  #else /* IS_LINUX */
@@ -58,7 +58,7 @@
      serial_fd = open(SERIAL_DEVICE, O_RDWR | O_NOCTTY | O_NDELAY);
      if (serial_fd == -1) {
          perror("Error opening serial port");
-         return;
+         return -1;
      }
  
      /* Get current options */
@@ -88,35 +88,36 @@
      /* Set non-blocking mode */
      fcntl(serial_fd, F_SETFL, FNDELAY);
  #endif
+    return 0;
  }
 
 /*
- * comms_receive_message - Read and decode one complete message from serial.
- * @msg: Pointer to target Message structure.
- *
- * Returns: true if a full valid message was received, false otherwise.
+ * comms_receive_message - Read and deserialize one complete message from serial.
+ * @param msg: Pointer to target Message structure.
+ * @returns:
+ *   > 0 = message successfully received and deserialized
+ *     0 = no message available
+ *   < 0 = error occurred
  */
-bool comms_receive_message(struct Message *msg)
+int comms_receive_message(struct Message *msg)
 {
     if (!msg)
-        return false;
-        
+        return -1;  /* Invalid argument */
+
     uint32_t now = GET_TIME_MS();
 
     if (receiving && (now - last_byte_time > MAX_MESSAGE_TIMEOUT_MS)) {
         receiving = false;
         rx_index = 0;
-        /* Set message null */
         memset(msg, 0, sizeof(struct Message));
-        return false;  /* Error - Timeout */
+        return -2;  /* Timeout */
     }
 
     while (SERIAL_AVAILABLE() > 0) {
         int byte = SERIAL_READ();
         if (byte < 0) {
-            /* Set message to null */
             memset(msg, 0, sizeof(struct Message));
-            return false;
+            return -3;  /* Read error */
         }
 
         last_byte_time = now;
@@ -126,23 +127,19 @@ bool comms_receive_message(struct Message *msg)
             if (b == MESSAGE_START) {
                 rx_index = 0;
                 rx_buffer[rx_index++] = b;
-                /* Initialize message to null */
                 memset(msg, 0, sizeof(struct Message));
                 receiving = true;
             } else {
                 rx_index = 0;
-                rx_buffer[rx_index++] = b;
-                /* Set message to null */
                 memset(msg, 0, sizeof(struct Message));
-                return false; /* Error - Corrupt start byte */
+                return -4;  /* Unexpected start byte */
             }
         } else {
             if (rx_index >= BUFFER_SIZE) {
                 receiving = false;
                 rx_index = 0;
-                /* Set message to null */
                 memset(msg, 0, sizeof(struct Message));
-                return false; /* Error - Buffer overflow */ 
+                return -5;  /* Buffer overflow */
             }
 
             rx_buffer[rx_index++] = b;
@@ -155,9 +152,8 @@ bool comms_receive_message(struct Message *msg)
                     if (rx_buffer[expected_len - 1] != MESSAGE_END) {
                         receiving = false;
                         rx_index = 0;
-                        /* Set message to null */
                         memset(msg, 0, sizeof(struct Message));
-                        return false; /* Error - Corrupt end byte */ 
+                        return -6;  /* Invalid end byte */
                     }
 
                     uint8_t checksum = rx_buffer[expected_len - 2];
@@ -165,24 +161,28 @@ bool comms_receive_message(struct Message *msg)
                     if (checksum != computed) {
                         receiving = false;
                         rx_index = 0;
-                        /* Set message to null */
                         memset(msg, 0, sizeof(struct Message));
-                        return false; /* Error - Bad checksum */
+                        return -7;  /* Invalid checksum */
                     }
 
-                    /* Deserialize into Message */
-                    return comms_deserialize_message(rx_buffer, expected_len, msg) == 0;
+                    int result = comms_deserialize_message(rx_buffer, expected_len, msg);
+                    receiving = false;
+                    rx_index = 0;
+                    return (result == 0) ? 1 : -8;  /* Success or deserialization error */
                 }
             }
         }
     }
 
-    /* Set message to null */
-    memset(msg, 0, sizeof(struct Message));
-    return false; /* No Message received*/
+    return 0;  /* No message yet */
 }
 
-void comms_send_command(uint16_t command)
+/*
+ * comms_send_command - Send a command message to the recipient
+ * @param command: The command to send
+ * @return 0 on success, negative value on error
+ */
+int comms_send_command(uint16_t command)
 {
     struct Message msg;
     msg.header.recipient = comms_recipient;
@@ -190,10 +190,16 @@ void comms_send_command(uint16_t command)
     msg.header.payload_length = sizeof(struct CommandBody);
     msg.body.payload_command.command = command;
 
-    comms_send_message(&msg);
+    return comms_send_message(&msg);
 }
 
-void comms_send_error(uint8_t error_code, const char *error_message)
+/* 
+ * comms_send_error - Send an error message to the recipient
+ * @param error_code: The error code to send
+ * @param error_message: The error message to send (optional)
+ * @return 0 on success, negative value on error 
+ */
+int comms_send_error(uint8_t error_code, const char *error_message)
 {
     struct Message msg;
     msg.header.recipient = comms_recipient;
@@ -211,12 +217,17 @@ void comms_send_error(uint8_t error_code, const char *error_message)
 
     msg.header.payload_length = 1 + strlen(msg.body.payload_error.error_message);
 
-    comms_send_message(&msg);
+    return comms_send_message(&msg);
 }
 
-void comms_send_status(const struct StatusBody *status)
+/* 
+ * comms_send_status - Send a status message to the recipient
+ * @param status: The status to send
+ * @return 0 on success, negative value on error
+ */
+int comms_send_status(const struct StatusBody *status)
 {
-    if (!status) return;
+    if (!status) return -11; /* no status provided */
 
     struct Message msg;
     msg.header.recipient = comms_recipient;
@@ -224,7 +235,7 @@ void comms_send_status(const struct StatusBody *status)
     msg.header.payload_length = sizeof(struct StatusBody);
     memcpy(&msg.body.payload_status, status, sizeof(struct StatusBody));
 
-    comms_send_message(&msg);
+    return comms_send_message(&msg);
 }
 
 
