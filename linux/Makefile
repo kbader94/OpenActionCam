@@ -23,7 +23,7 @@ LDFLAGS = -lpthread
 
 # === Source and Output Files ===
 BUILD_DIR = build
-SRCS = main.c comms.c record.c
+SRCS = main.c comms.c record.c error.cpp
 OBJS = $(SRCS:%.c=$(BUILD_DIR)/%.o)
 TARGET = $(BUILD_DIR)/$(TARGET_NAME)
 

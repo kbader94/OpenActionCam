@@ -99,7 +99,7 @@ const char *check_serial(void)
 
 void setup(void)
 {
-    initErrorSystem(&led, &power_management);
+    init_error_system(&led, &power_management);
 
     /* init pins */
     pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -124,7 +124,7 @@ void loop(void)
     /* Receive serial message AND process error messages */
     if (msg.header.message_type == MESSAGE_TYPE_ERROR)
     {
-        throwError(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
+        throw_error(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
     }
     
     unsigned long press_duration = handle_button_press();
@@ -200,7 +200,7 @@ void loop(void)
     case ERROR_STATE:
         if (press_duration > 0)
         {
-            resetError();
+            reset_error();
         }
         break;
     }

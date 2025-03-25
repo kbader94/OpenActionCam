@@ -10,6 +10,7 @@
  #include <signal.h>
  #include "comms.h"
  #include "record.h"
+ #include "error.h"
  
  /*
   * cleanup - Handles SIGINT (Ctrl+C), ensuring recording is stopped before exit.
@@ -32,7 +33,9 @@
  {
      /* Register SIGINT handler */
      signal(SIGINT, cleanup);
- 
+     
+     init_error_system();
+
      /* Initialize communication */
      comms_init();
      

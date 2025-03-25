@@ -7,12 +7,12 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
         switch (new_state) {
              case LOW_POWER_STATE:
                  Serial.begin(9600); // TODO: remove for true low power
-                 resetError();
+                 reset_error();
                  led->clearAnimation();
                  led->setVal(0);
                  digitalWrite(power_control_pin, LOW);
                  state = LOW_POWER_STATE;
-                 DEBUG("[PM] Device state transitioned to LOW_POWER_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to LOW_POWER_STATE");
                  break;
      
              case STARTUP_STATE:
@@ -21,7 +21,7 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
                  startup_start_time = millis();
                  led->setAnimation(&rainbow);
                  state = STARTUP_STATE;
-                 DEBUG("[PM] Device state transitioned to STARTUP_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to STARTUP_STATE");
                  break;
      
              case READY_STATE:
@@ -31,7 +31,7 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
                      comms_send_command(COMMAND_RECORD_REQ_END);
                  }
                  state = READY_STATE;
-                 DEBUG("[PM] Device state transitioned to READY_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to READY_STATE");
                  break;
      
              case RECORDING_STATE:
@@ -39,7 +39,7 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
                  led->setHue(LED_HUE_WHITE);  /* White */
                  led->setSat(0);
                  state = RECORDING_STATE;
-                 DEBUG("[PM] Device state transitioned to RECORDING_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to RECORDING_STATE");
                  break;
      
              case SHUTDOWN_REQUEST_STATE:
@@ -47,21 +47,21 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
                  led->setAnimation(&rainbow);
                  shutdown_request_sent_time = millis();
                  state = SHUTDOWN_REQUEST_STATE;
-                 DEBUG("[PM] Device state transitioned to SHUTDOWN_REQUEST_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to SHUTDOWN_REQUEST_STATE");
                  break;
      
              case SHUTDOWN_STATE:
-                 DEBUG("[PM] RPi is shutting down. Waiting for UART idle");
+                 DEBUG_MESSAGE("[PM] RPi is shutting down. Waiting for UART idle");
                  pi_shutting_down = true;
                  shutdown_req_ack_rec_time = millis();
-                 DEBUG("[PM] Disabling Serial to listen for UART idle.");
+                 DEBUG_MESSAGE("[PM] Disabling Serial to listen for UART idle.");
                  Serial.end();
                  pinMode(PIN_RX, INPUT_PULLUP);
                  state = SHUTDOWN_STATE;
                  break;
      
              case ERROR_STATE:
-                 DEBUG("[PM] Device state transitioned to ERROR_STATE");
+                 DEBUG_MESSAGE("[PM] Device state transitioned to ERROR_STATE");
                  state = ERROR_STATE;
                  break;
          }

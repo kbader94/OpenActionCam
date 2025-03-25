@@ -8,8 +8,6 @@ BlinkLedAnimation::BlinkLedAnimation(Led* led_ref, int initial_blink_count)
 
 void BlinkLedAnimation::setBlinkCount(int count) {
     if (count <= 0) return; // Prevent invalid values
-    Serial.print("Setting Error code ");
-    Serial.println(count);
     blink_count = count;
     remaining_blinks = count;
     in_pause = false;         

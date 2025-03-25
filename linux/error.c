@@ -12,20 +12,6 @@ void init_error_system() {
     syslog(LOG_INFO, "Error system initialized.");
 }
 
-/* Store and log an error */
-void throw_error(uint8_t code, const char* message) {
-    current_error = code;
-
-    /* Write to log file */
-    FILE* log_file = fopen("/var/log/linux_camera.log", "a");
-    if (log_file) {
-        fprintf(log_file, "[ERROR %d] %s\n", code, message);
-        fclose(log_file);
-    } else {
-        syslog(LOG_ERR, "Failed to open log file.");
-    }
-}
-
 /* Reset error */
 void reset_error() {
     current_error = 0;

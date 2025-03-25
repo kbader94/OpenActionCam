@@ -31,7 +31,7 @@
     while ((n = read(stderr_fd, buffer, sizeof(buffer) - 1)) > 0) {
         buffer[n] = '\0';
         if (strstr(buffer, "no cameras available")) {
-            ERROR(61, "No camera detected.");
+            ERROR(ERR_CAMERA_NOT_FOUND);
             kill(libcamera_pid, SIGINT);
             recording = 0;
             break;
@@ -56,7 +56,7 @@
      struct statvfs stat;
  
      if (statvfs(OUTPUT_DIR, &stat) != 0) {
-         ERROR(50, "Failed to check available storage space.");
+         ERROR(ERR_INSUFFICIENT_SPACE);
          return -1;
      }
  
@@ -83,7 +83,7 @@
      if (system(ffmpeg_cmd) == 0)
          printf("Transcoding complete! Video saved to: %s\n", ENCODED_VIDEO);
      else
-         ERROR(80, "Transcoding process failed.");
+         ERROR(ERR_TRANSCODE_FAILED);
  }
  
  /*
@@ -103,12 +103,12 @@
       }
   
       if ((get_available_space() < MIN_FREE_SPACE_MB)) {
-          ERROR(51, "Insufficient storage space!");
+          ERROR(ERR_INSUFFICIENT_SPACE);
           return;
       }
   
       if (sscanf(params.resolution, "%dx%d", &width, &height) != 2) {
-          ERROR(52, "Invalid resolution format.");
+          ERROR(ERR_INVALID_RESOLUTION);
           return;
       }
   
@@ -123,7 +123,7 @@
                RAW_VIDEO);
   
       if (pipe(pipefd) == -1) {
-          ERROR(53, "Failed to create pipe.");
+          ERROR(ERR_PIPE_CREATION_FAILED);
           return;
       }
   
@@ -144,7 +144,7 @@
   
       // Launch monitor thread
       if (pthread_create(&stderr_thread, NULL, stderr_monitor_thread, NULL) != 0) {
-          ERROR(54, "Failed to create monitor thread.");
+          ERROR(ERR_MONITOR_THREAD_FAILED);
           kill(libcamera_pid, SIGINT);
           waitpid(libcamera_pid, NULL, 0);
           return;
@@ -153,12 +153,12 @@
       sleep(2); // Let it run briefly
   
       if (waitpid(libcamera_pid, &status, WNOHANG) > 0) {
-          ERROR(70, "Recording failed to start.");
+          ERROR(ERR_RECORD_START_FAILED);
           return;
       }
   
       recording = 1;
-      DEBUG("Recording started successfully.");
+      DEBUG_MESSAGE("Recording started successfully.");
   }
 
  /*
