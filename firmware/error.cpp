@@ -88,7 +88,7 @@ extern "C" {
 static uint8_t current_error = 0;
 
 /* Initialize Error System */
-extern "C" void init_error_system() {
+void init_error_system() {
     /* Open syslog for system-wide logging */
     openlog("linux_camera", LOG_PID | LOG_CONS, LOG_USER);
     syslog(LOG_INFO, "Error system initialized.");
@@ -97,6 +97,11 @@ extern "C" void init_error_system() {
 /* Reset error */
 void reset_error() {
     current_error = 0;
+}
+
+void throw_error(uint8_t code, const char* message) {
+    fprintf(stderr, "[ERROR %d]%s\n", code, message); 
+    syslog(LOG_WARNING, "%s", message); \
 }
 
 /* Get the current error */

@@ -4,7 +4,7 @@
 #include "led_animation.h"
 #include "led.h"
 
-const unsigned long BLINK_INTERVAL = 200;  // Time between blinks (ms)
+const unsigned long BLINK_INTERVAL = 500;  // Time between blinks (ms)
 const unsigned long PAUSE_DURATION = 3000; // Pause duration at end of cycle (ms)
 
 class BlinkLedAnimation : public LedAnimation {

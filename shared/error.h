@@ -26,17 +26,17 @@ typedef struct {
 } error_def_t;
 
 /* === Error Definitions === */
-#define ERR_NO_COMM_RPI               ((error_def_t){  4, "No contact with RPI!",               ORIGIN_MCU })
-#define ERR_RPI_SHUTDOWN_REQ_TIMEOUT  ((error_def_t){  5, "RPI did not acknowledge shutdown!",   ORIGIN_MCU })
+#define ERR_NO_COMM_RPI               ((error_def_t){  4, "No contact with RPI!",                   ORIGIN_MCU })
+#define ERR_RPI_SHUTDOWN_REQ_TIMEOUT  ((error_def_t){  5, "RPI did not acknowledge shutdown!",      ORIGIN_MCU })
 #define ERR_RPI_SHUTDOWN_TIMEOUT      ((error_def_t){  6, "Could not kill RPI - no serial hangup!", ORIGIN_MCU })
-#define ERR_STORAGE_CHECK_FAILED      ((error_def_t){ 50, "Failed to check available storage.",  ORIGIN_LINUX })
-#define ERR_INSUFFICIENT_SPACE        ((error_def_t){ 51, "Insufficient storage space!",         ORIGIN_LINUX })
-#define ERR_INVALID_RESOLUTION        ((error_def_t){ 52, "Invalid resolution format.",          ORIGIN_LINUX })
-#define ERR_PIPE_CREATION_FAILED      ((error_def_t){ 53, "Failed to create pipe.",              ORIGIN_LINUX })
-#define ERR_MONITOR_THREAD_FAILED     ((error_def_t){ 54, "Failed to create monitor thread.",     ORIGIN_LINUX })
-#define ERR_CAMERA_NOT_FOUND          ((error_def_t){ 61, "No camera detected.",                 ORIGIN_LINUX })
-#define ERR_RECORD_START_FAILED       ((error_def_t){ 70, "Recording failed to start.",          ORIGIN_LINUX })
-#define ERR_TRANSCODE_FAILED          ((error_def_t){ 80, "Transcoding process failed.",         ORIGIN_LINUX })
+#define ERR_STORAGE_CHECK_FAILED      ((error_def_t){ 10, "Failed to check available storage.",     ORIGIN_LINUX })
+#define ERR_INSUFFICIENT_SPACE        ((error_def_t){ 11, "Insufficient storage space!",            ORIGIN_LINUX })
+#define ERR_INVALID_RESOLUTION        ((error_def_t){ 12, "Invalid resolution format.",             ORIGIN_LINUX })
+#define ERR_PIPE_CREATION_FAILED      ((error_def_t){ 13, "Failed to create pipe.",                 ORIGIN_LINUX })
+#define ERR_MONITOR_THREAD_FAILED     ((error_def_t){ 14, "Failed to create monitor thread.",       ORIGIN_LINUX })
+#define ERR_CAMERA_NOT_FOUND          ((error_def_t){ 15, "No camera detected.",                    ORIGIN_LINUX })
+#define ERR_RECORD_START_FAILED       ((error_def_t){ 16, "Recording failed to start.",             ORIGIN_LINUX })
+#define ERR_TRANSCODE_FAILED          ((error_def_t){ 17, "Transcoding process failed.",            ORIGIN_LINUX })
 
 #if IS_MCU
 
