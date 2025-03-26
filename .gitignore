@@ -1,5 +1,10 @@
-# Ignore build directory (generated binaries)
-build/
+# Ignore build directories
+software/linux/build/
+software/firmware/build/
+
+#Ignore KiCad backups
+hardware/iJet-backups/
+
 # Ignore VSCode settings
 .vscode/
 

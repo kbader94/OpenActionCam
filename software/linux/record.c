@@ -37,10 +37,11 @@
             break;
         }
 
-        // You can log this if needed
-        // fprintf(stderr, "[libcamera] %s", buffer);
+        /* TODO: monitor filesystem for free space and stop recording if it gets low 
+         * TODO: monitor battery level and stop recording if it gets low 
+         * TODO: DEBUG_MESSAGE the libcamera output
+         */
     }
-
     close(stderr_fd);
     return NULL;
 }

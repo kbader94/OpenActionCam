@@ -1,0 +1,20 @@
+(kicad_sch (version 20230121) (generator eeschema)
+
+  (uuid d5f889db-ed06-4381-884c-ff54e93488c2)
+
+  (paper "A4")
+
+  (lib_symbols
+  )
+
+
+  (text "SMD2920B500TF/16 - Battery Resettable Fuse\n16V 5A hold, 10A trip"
+    (at 46.99 34.036 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 12d5c6a0-7ed7-4c58-a183-a24a064fdf8a)
+  )
+  (text "MM3220C03NRH - Battery Protection IC\n" (at 77.47 76.2 0)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 76dfd81f-02f0-4795-9536-20e824b0bc6d)
+  )
+)
