@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # === CONFIGURATION ===
-BUILD_DIR="linux/build"
+BUILD_DIR="software/linux/build"
 PROGRAM_NAME="linux_camera"
 REMOTE_PATH="/home/$2/bin"  # Uses provided username for home directory
 

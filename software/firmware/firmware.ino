@@ -1,6 +1,8 @@
 #include <Adafruit_NeoPixel.h>
-#include <avr/sleep.h>
+
+#include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/sleep.h>
 #include "led.h"
 #include "error.h"
 #include "rainbow_led_animation.h"
@@ -8,7 +10,7 @@
 
 #define BUTTON_PIN 2   /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino digital 2 */
 #define STAT_LED_PIN 3 /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino digial 3 */
-#define POWER_PIN 4    /* MOSFET control (PD4), atmega328 physical pin 6, AKA arduino digital 4 */
+#define POWER_PIN 4    /* MOSFET control on PD4, atmega328 physical pin 6, AKA arduino digital 4 */
 #define PI_INT 7       /* RPI Interrupt on PD7, atmega328 physical pin 13, AKA arduino digital 7 */
 #define LED_EN 9       /* Enable LED on PB1, atmega physical pin 15, AKA arduino digital 9 */
 
@@ -50,7 +52,7 @@ unsigned long handle_button_press(void)
 {
     if (button_pressed)
     {
-
+                             
         button_pressed = false;       // Reset flag
         return button_press_duration; // Return duration
     }
@@ -58,54 +60,43 @@ unsigned long handle_button_press(void)
 }
 
 /*
- * Enters low power mode.
+ * Setup sleep as power-down
  */
-void enter_sleep_mode(void)
-{
-    // led.setColor(0x00000000); /*  */
-    // led.update();
+void setup_sleep_mode()
+{   
+    SMCR &= ~((1 << SM2) | (1 << SM1) | (1 << SM0));  // Clear mode bits
+    SMCR |= (1 << SM1);  // Set Power-down mode (010)
 
-    // attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), button_isr, FALLING);
-
-    // set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    // sleep_enable();
-    // sleep_cpu();  /* MCU sleeps here */
-
-    // sleep_disable();
+    SMCR |= (1 << SE);   // Enable sleep
 }
 
 /*
- * Handles Serial Input.
+ * Enter sleep, wait for interrupt, then wake up
  */
-const char *check_serial(void)
+void enter_sleep()
 {
-    static char serial_buffer[64];
-    static uint8_t serial_index = 0;
+    led.setVal(0);  /*  TODO: led.off() */
+    led.update();
 
-    while (Serial.available())
-    {
-        char c = Serial.read();
-        if (c == '\n')
-        {
-            serial_buffer[serial_index] = '\0';
-            serial_index = 0;
-            return serial_buffer;
-        }
-        if (serial_index < sizeof(serial_buffer) - 1)
-            serial_buffer[serial_index++] = c;
-    }
-    return "";
+    sleep_cpu();         // Enter sleep (until interrupt)
+
+    led.setVal(255);  /*  TODO: led.on() */
+    led.update();
 }
 
 void setup(void)
 {
+    /* init serial comms */
+    comms_init();
+
+    /* init firmware error handler */
     init_error_system(&led, &power_management);
 
     /* init pins */
     pinMode(BUTTON_PIN, INPUT_PULLUP);
     pinMode(POWER_PIN, OUTPUT);
 
-    Serial.begin(9600);
+    /* button interrupt */
     attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), button_isr, CHANGE);
 
     /* init led strip */
@@ -114,14 +105,20 @@ void setup(void)
     led.setVal(0); // turn off LED
     led_strip.show();
 
+    /* init sleep mode as power-down and wake on interrupt INT0 */
+    setup_sleep_mode();
+
+    /* enable interrupts*/
     sei();
 }
+
 void loop(void)
 {
+    /* Receive serial messages */
     struct Message msg = {0};
     comms_receive_message(&msg);
 
-    /* Receive serial message AND process error messages */
+    /* Process error messages */
     if (msg.header.message_type == MESSAGE_TYPE_ERROR)
     {
         throw_error(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
@@ -129,6 +126,7 @@ void loop(void)
     
     unsigned long press_duration = handle_button_press();
 
+    /* Handle events which trigger power state transitions */
     switch (power_management.currentState())
     {
     case LOW_POWER_STATE:
@@ -207,6 +205,6 @@ void loop(void)
 
     led.update();
 
-    // if (state == LOW_POWER)
-    //      enter_sleep_mode();
+     if (power_management.currentState() == LOW_POWER_STATE)
+         enter_sleep();
 }
