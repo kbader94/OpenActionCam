@@ -60,33 +60,49 @@ unsigned long handle_button_press(void)
 }
 
 /*
- * Setup sleep as power-down
- */
-void setup_sleep_mode()
-{   
-    SMCR &= ~((1 << SM2) | (1 << SM1) | (1 << SM0));  // Clear mode bits
-    SMCR |= (1 << SM1);  // Set Power-down mode (010)
-
-    SMCR |= (1 << SE);   // Enable sleep
-}
-
-/*
  * Enter sleep, wait for interrupt, then wake up
  */
-void enter_sleep()
+void sleep_until_button_press()
 {
-    led.setVal(0);  /*  TODO: led.off() */
+    led.setVal(0);  /* TODO: led.off() */
     led.update();
 
-    sleep_cpu();         // Enter sleep (until interrupt)
+    DEBUG_MESSAGE("Sleeping");
 
-    led.setVal(255);  /*  TODO: led.on() */
+    cli();
+
+    /* Disable watchdog, ADC, I2C, SPI, and UART */
+    wdt_disable();                   
+    ADCSRA &= ~(1 << ADEN);          
+    power_twi_disable();            
+    power_spi_disable();        
+    power_usart0_disable();        
+
+    /* Disable BOD during sleep */
+    MCUCR |= (1 << BODS) | (1 << BODSE);
+    MCUCR = (MCUCR & ~(1 << BODSE)) | (1 << BODS);
+
+    sleep_enable();
+    sei();
+    sleep_cpu(); /* Sleep until interrupt/INT0/button press */
+    sleep_disable();
+
+    /* Re-enable UART, SPI, I2C,and ADC */
+    power_usart0_enable();  
+    power_spi_enable();         
+    power_twi_enable();            
+    ADCSRA |= (1 << ADEN);     
+
+    DEBUG_MESSAGE("Waking");
+
+    led.setVal(255);  /* TODO: led.on() */
     led.update();
 }
+
 
 void setup(void)
 {
-    /* init serial comms */
+    /* init serial messaging protocol */
     comms_init();
 
     /* init firmware error handler */
@@ -105,8 +121,8 @@ void setup(void)
     led.setVal(0); // turn off LED
     led_strip.show();
 
-    /* init sleep mode as power-down and wake on interrupt INT0 */
-    setup_sleep_mode();
+    /* init sleep mode as power-down */
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
     /* enable interrupts*/
     sei();
@@ -124,9 +140,10 @@ void loop(void)
         throw_error(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
     }
     
+    /* Get button press duration */
     unsigned long press_duration = handle_button_press();
 
-    /* Handle events which trigger power state transitions */
+    /* Handle events for current power state */
     switch (power_management.currentState())
     {
     case LOW_POWER_STATE:
@@ -205,6 +222,7 @@ void loop(void)
 
     led.update();
 
-     if (power_management.currentState() == LOW_POWER_STATE)
-         enter_sleep();
+    /* Sleep - Disable Peripherals and Power Down */
+    if (power_management.currentState() == LOW_POWER_STATE)
+        sleep_until_button_press();
 }
