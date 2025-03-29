@@ -14,9 +14,10 @@
 #define PI_INT 7       /* RPI Interrupt on PD7, atmega328 physical pin 13, AKA arduino digital 7 */
 #define LED_EN 9       /* Enable LED on PB1, atmega physical pin 15, AKA arduino digital 9 */
 
-#define DEBOUNCE_DELAY 50     /* Button debounce delay (ms) */
-#define LONG_PRESS_TIME 1000  /* Long press threshold (ms) */
-#define STARTUP_TIMEOUT 30000 /* 30 second startup timeout */
+#define DEBOUNCE_DELAY 50       /* Button debounce delay (ms) */
+#define LONG_PRESS_TIME 1000    /* Long press threshold (ms) */
+#define STARTUP_TIMEOUT 30000   /* 30 second startup timeout */
+#define STATUS_INTERVAL_MS 500  /* Interval between status messages */ 
 
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
@@ -46,17 +47,17 @@ void button_isr(void)
 }
 
 /*
- * Handle button press - output press duration.
+ * Handle button press
+ * @return Button press duration in milliseconds
  */
 unsigned long handle_button_press(void)
 {
     if (button_pressed)
-    {
-                             
-        button_pressed = false;       // Reset flag
-        return button_press_duration; // Return duration
+    {               
+        button_pressed = false;       
+        return button_press_duration; /* return duration in millis */
     }
-    return 0; // No new button press detected
+    return 0;
 }
 
 /*
@@ -84,7 +85,7 @@ void sleep_until_button_press()
 
     sleep_enable();
     sei();
-    sleep_cpu(); /* Sleep until interrupt/INT0/button press */
+    sleep_cpu(); /* Sleep until interrupt (button press) */
     sleep_disable();
 
     /* Re-enable UART, SPI, I2C,and ADC */
@@ -99,6 +100,50 @@ void sleep_until_button_press()
     led.update();
 }
 
+/*
+ * read_battery_voltage - Reads battery voltage via analog input (PC3 / A3).
+ * @return Actual battery voltage in volts (e.g., 7.42V)
+ */
+float read_battery_voltage(void)
+{
+    const float VREF = 5.0;                /* Reference voltage for ADC */ 
+    const float ADC_RESOLUTION = 1023.0;   /* 10-bit ADC resolution */ 
+    const float VOLTAGE_DIVIDER_RATIO = (10.0 + 15.0) / 15.0;  /* (R1 + R2) / R2 = 25k / 15k */ 
+
+    /* Request ADC value */ 
+    ADMUX = (1 << REFS0) | (1 << MUX1) | (1 << MUX0);
+    ADCSRA |= (1 << ADSC);  
+
+    while (ADCSRA & (1 << ADSC));  /* Wait for ADC value */
+    uint16_t raw = ADC;  /* Get ADC value */ 
+
+    /* Convert to battery voltage */
+    float vout = (raw * VREF) / ADC_RESOLUTION;
+    float vin = vout * VOLTAGE_DIVIDER_RATIO;
+    return vin;
+}
+
+/* 
+ * transmit_status_message - Periodically send a status to linux system via comms.
+ */
+void transmit_status_message(void)
+{
+    static unsigned long last_status_time = 0;
+    unsigned long now = millis();
+
+    if (now - last_status_time >= STATUS_INTERVAL_MS) {
+        last_status_time = now;
+
+        struct StatusBody status = {
+            .battery_voltage = read_battery_voltage(),
+            .state = power_management.currentState(),
+            .charging = false,  /* TODO: implement charging detection */ 
+            .error_code = get_current_error()
+        };
+
+        comms_send_status(&status);
+    }
+}
 
 void setup(void)
 {
@@ -141,13 +186,13 @@ void loop(void)
     }
     
     /* Get button press duration */
-    unsigned long press_duration = handle_button_press();
+    unsigned long button_press_duration = handle_button_press();
 
     /* Handle events for current power state */
     switch (power_management.currentState())
     {
     case LOW_POWER_STATE:
-        if (press_duration > 0)
+        if (button_press_duration > 0)
         {
             power_management.transitionTo(STARTUP_STATE);
         }
@@ -167,22 +212,22 @@ void loop(void)
         break;
 
     case READY_STATE:
-        if (press_duration > 0 && press_duration < LONG_PRESS_TIME)
+        if (button_press_duration > 0 && button_press_duration < LONG_PRESS_TIME)
         {
             power_management.transitionTo(RECORDING_STATE);
         }
-        else if (press_duration >= LONG_PRESS_TIME)
+        else if (button_press_duration >= LONG_PRESS_TIME)
         {
             power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
         }
         break;
 
     case RECORDING_STATE:
-        if (press_duration > 0 && press_duration < LONG_PRESS_TIME)
+        if (button_press_duration > 0 && button_press_duration < LONG_PRESS_TIME)
         {
             power_management.transitionTo(READY_STATE);
         }
-        else if (press_duration >= LONG_PRESS_TIME)
+        else if (button_press_duration >= LONG_PRESS_TIME)
         {
             power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
         }
@@ -213,16 +258,21 @@ void loop(void)
         break;
 
     case ERROR_STATE:
-        if (press_duration > 0)
+        if (button_press_duration > 0)
         {
             reset_error();
         }
         break;
     }
 
+    /* Send current status */
+    transmit_status_message();
+    
+    /* Update led */
     led.update();
 
-    /* Sleep - Disable Peripherals and Power Down */
+    /* Sleep - Disable peripherals and power down */
     if (power_management.currentState() == LOW_POWER_STATE)
         sleep_until_button_press();
+    
 }
