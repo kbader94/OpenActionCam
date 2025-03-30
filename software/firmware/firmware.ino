@@ -1,8 +1,11 @@
 #include <Adafruit_NeoPixel.h>
 
+#include <avr/wdt.h> 
+#include <avr/power.h>  
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+
 #include "led.h"
 #include "error.h"
 #include "rainbow_led_animation.h"
@@ -272,7 +275,7 @@ void loop(void)
     led.update();
 
     /* Sleep - Disable peripherals and power down */
-    if (power_management.currentState() == LOW_POWER_STATE)
-        sleep_until_button_press();
+   // if (power_management.currentState() == LOW_POWER_STATE)
+    //    sleep_until_button_press();
     
 }
