@@ -22,6 +22,9 @@
 #define STARTUP_TIMEOUT 30000   /* 30 second startup timeout */
 #define STATUS_INTERVAL_MS 500  /* Interval between status messages */ 
 
+#define BATTERY_SAMPLES 8                   /* ADC re-samples */
+#define BATTERY_VOLTAGE_OFFSET 0.15f        /* ADC offset (volts) note: actual value is 0.16 but we add 0.4V for error margin */
+
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
 PowerManagement power_management(&led, POWER_PIN);
@@ -105,26 +108,31 @@ void sleep_until_button_press()
 
 /*
  * read_battery_voltage - Reads battery voltage via analog input (PC3 / A3).
- * @return Actual battery voltage in volts (e.g., 7.42V)
+ * @return adjusted battery voltage in volts. Adjusted with offset from BATTERY_VOLTAGE_OFFSET
  */
 float read_battery_voltage(void)
 {
-    const float VREF = 5.0;                /* Reference voltage for ADC */ 
-    const float ADC_RESOLUTION = 1023.0;   /* 10-bit ADC resolution */ 
-    const float VOLTAGE_DIVIDER_RATIO = (10.0 + 15.0) / 15.0;  /* (R1 + R2) / R2 = 25k / 15k */ 
+    const float VREF = 5.0f;
+    const float ADC_RESOLUTION = 1023.0f;
+    const float VOLTAGE_DIVIDER_RATIO = (10.0f + 15.0f) / 15.0f;  /* 25k / 15k */
+    
+    uint16_t sum = 0;
 
-    /* Request ADC value */ 
-    ADMUX = (1 << REFS0) | (1 << MUX1) | (1 << MUX0);
-    ADCSRA |= (1 << ADSC);  
+    for (uint8_t i = 0; i < BATTERY_SAMPLES; i++) {
+        /* Start ADC conversion on PC3 / A3 (MUX1 and MUX0 set) */
+        ADMUX = (1 << REFS0) | (1 << MUX1) | (1 << MUX0);
+        ADCSRA |= (1 << ADSC);  
+        while (ADCSRA & (1 << ADSC));  /* Wait for conversion */
+        sum += ADC;
+    }
 
-    while (ADCSRA & (1 << ADSC));  /* Wait for ADC value */
-    uint16_t raw = ADC;  /* Get ADC value */ 
+    float avg_raw = (float)sum / BATTERY_SAMPLES;
+    float vout = (avg_raw * VREF) / ADC_RESOLUTION;
+    float vin = vout * VOLTAGE_DIVIDER_RATIO + BATTERY_VOLTAGE_OFFSET;
 
-    /* Convert to battery voltage */
-    float vout = (raw * VREF) / ADC_RESOLUTION;
-    float vin = vout * VOLTAGE_DIVIDER_RATIO;
     return vin;
 }
+
 
 /* 
  * transmit_status_message - Periodically send a status to linux system via comms.
@@ -267,6 +275,11 @@ void loop(void)
         }
         break;
     }
+
+    /* Check battery level */
+    float batt_lvl = read_battery_voltage();
+    if (batt_lvl < 7.42f) ERROR(ERR_LOW_BATTERY);
+    if (batt_lvl > 8.5f) ERROR(ERR_BATTERY_OV);
 
     /* Send current status */
     transmit_status_message();
