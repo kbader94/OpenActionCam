@@ -56,18 +56,7 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [
-        "lib_footprint_mismatch|132470000|73480000|00000000-0000-0000-0000-00005a793e9f|00000000-0000-0000-0000-000000000000",
-        "silk_edge_clearance|182304000|151729500|9d173503-d368-4b44-95a9-9c7b12139a7a|18f2bafa-cc3f-4a72-8524-8fd8b23f1e5d",
-        "silk_edge_clearance|182304000|160929500|9d173503-d368-4b44-95a9-9c7b12139a7a|9413f424-c07c-4fa8-acd0-070262506d0d",
-        "silk_overlap|113941730|78833000|6218e30b-cbcd-4030-b6f1-384c1b859eaf|891b6fd1-5119-49d2-b914-e4cce9a97bc0",
-        "silk_overlap|114045000|78908963|6218e30b-cbcd-4030-b6f1-384c1b859eaf|8b15b801-5b22-4a15-9b78-ab826fb2ce98",
-        "unconnected_items|118245813|137518000|9c151491-d72f-48bf-81a3-0f7696f270ad|711975b6-1930-4491-bac4-57296060ef33",
-        "unconnected_items|132336000|114490000|428f12ea-0d2b-4d0d-977f-36fa2069c00f|0fc4aba8-4c06-44a8-b079-258a22e3ca9f",
-        "unconnected_items|138491358|150513177|c27fddc7-96d4-4106-9d17-bd3dd69e3402|1084a09d-0046-4f6a-8215-69bf99996184",
-        "unconnected_items|152907596|98936495|3f92e81d-2c46-4ccc-a61a-755dfb9673cf|64887f31-886c-4986-98f2-135e26bbbb66",
-        "unconnected_items|162398822|103048000|3e6a2a42-6785-4f05-ab41-4bf245671cfe|f38d3557-ec50-4819-88ae-b9efd886f111"
-      ],
+      "drc_exclusions": [],
       "meta": {
         "version": 2
       },
@@ -544,24 +533,24 @@
       ""
     ],
     [
-      "22fcd688-33b8-49bf-bbf7-32dc41075404",
-      "LED Array"
+      "95e23f0a-de7c-483b-8503-7238838df55e",
+      "Power Supply"
     ],
     [
-      "0ef9b869-52ee-4974-a652-74e501eae9ae",
-      "Power Supply"
+      "22fcd688-33b8-49bf-bbf7-32dc41075404",
+      "LED Array"
     ],
     [
       "800e290e-8cfb-4946-9373-3e863e65a993",
       "Power BMS"
     ],
     [
-      "39e953c3-4b4a-4927-a766-84b5a3b5cf49",
-      "Power State"
+      "958a8f8b-4f02-4f0b-8738-caa770ee5158",
+      "Battery Pack & Protection"
     ],
     [
-      "e750ff83-b2c2-450e-82d5-594e41fe3c38",
-      "Power Port and Charger"
+      "39e953c3-4b4a-4927-a766-84b5a3b5cf49",
+      "Power State"
     ]
   ],
   "text_variables": {}
