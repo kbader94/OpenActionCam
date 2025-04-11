@@ -4,6 +4,14 @@
 
   (paper "A4")
 
+  (title_block
+    (title "OpenActionCam")
+    (date "2025-04-10")
+    (rev "0.2")
+    (company "KBader94")
+    (comment 1 "https://github.com/kbader94/OpenActionCam")
+  )
+
   (lib_symbols
     (symbol "Connector_Generic:Conn_01x11" (pin_names (offset 1.016) hide) (in_bom yes) (on_board yes)
       (property "Reference" "J" (at 0 15.24 0)
@@ -642,6 +650,9 @@
   (junction (at 121.92 156.21) (diameter 0) (color 0 0 0 0)
     (uuid 02194080-e7c1-4704-a366-9cd75ea9656a)
   )
+  (junction (at 54.61 57.404) (diameter 0) (color 0 0 0 0)
+    (uuid 306c05aa-996d-43b6-9ca5-e50508048cac)
+  )
   (junction (at 97.282 53.086) (diameter 0) (color 0 0 0 0)
     (uuid b633d53a-1c54-4ae8-a29f-3842dc8a7f0b)
   )
@@ -651,6 +662,9 @@
   (junction (at 85.598 168.91) (diameter 0) (color 0 0 0 0)
     (uuid ecf21c74-35f2-4cc4-8332-cf537fc214aa)
   )
+
+  (no_connect (at 72.39 38.354) (uuid 05dc0669-0a76-4891-8b17-f81bca00b7af))
+  (no_connect (at 52.07 38.354) (uuid 40843ad1-47d0-48f5-9b0a-f08d2fed478b))
 
   (wire (pts (xy 54.61 71.12) (xy 54.61 68.072))
     (stroke (width 0) (type default))
@@ -663,6 +677,10 @@
   (wire (pts (xy 97.282 46.99) (xy 97.282 53.086))
     (stroke (width 0) (type default))
     (uuid 1e8a0795-1d7a-46b6-82b7-dcf79ea6ac39)
+  )
+  (wire (pts (xy 46.99 57.404) (xy 54.61 57.404))
+    (stroke (width 0) (type default))
+    (uuid 202f4d46-a720-4f4d-97ba-03a1360dabe8)
   )
   (wire (pts (xy 85.598 148.59) (xy 91.948 148.59))
     (stroke (width 0) (type default))
@@ -684,13 +702,17 @@
     (stroke (width 0) (type default))
     (uuid 4336788f-8f38-4fd0-a1ec-7712c396a171)
   )
-  (wire (pts (xy 59.69 60.452) (xy 59.69 38.354))
+  (wire (pts (xy 59.69 38.354) (xy 59.69 70.866))
     (stroke (width 0) (type default))
     (uuid 5cdca34b-9649-4cb8-9bc1-ffea76b3d036)
   )
   (wire (pts (xy 85.598 168.91) (xy 85.598 175.514))
     (stroke (width 0) (type default))
     (uuid 613404fa-c5e3-4f49-9aa2-59fba9cc03db)
+  )
+  (wire (pts (xy 46.99 38.354) (xy 46.99 57.404))
+    (stroke (width 0) (type default))
+    (uuid 627f305e-0bbb-4980-9e88-555d7f9fcbaf)
   )
   (wire (pts (xy 67.31 53.086) (xy 67.31 38.354))
     (stroke (width 0) (type default))
@@ -716,13 +738,13 @@
     (stroke (width 0) (type default))
     (uuid 9821f3ed-00ff-4a7b-82a5-14fa0020ec18)
   )
-  (wire (pts (xy 54.61 38.354) (xy 54.61 60.452))
+  (wire (pts (xy 54.61 38.354) (xy 54.61 57.404))
     (stroke (width 0) (type default))
     (uuid b0b836cb-034a-4674-8398-9403b0d14132)
   )
-  (wire (pts (xy 59.69 70.866) (xy 59.69 68.072))
+  (wire (pts (xy 54.61 57.404) (xy 54.61 60.452))
     (stroke (width 0) (type default))
-    (uuid baa04d2a-ce80-4828-87bd-750efd9ffdfe)
+    (uuid b2290504-ce05-4aef-86ea-6ec9d4e118cf)
   )
   (wire (pts (xy 71.12 53.086) (xy 67.31 53.086))
     (stroke (width 0) (type default))
@@ -745,24 +767,17 @@
     (uuid ff612004-672d-493e-9fc7-25ae9c0f870e)
   )
 
-  (text "SMD2920B500TF/16 - Battery Resettable Fuse\n16V 5A hold, 10A trip"
-    (at 232.41 28.194 0)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid 12d5c6a0-7ed7-4c58-a183-a24a064fdf8a)
-  )
   (text "RProg - R27 @ 1K provides 1.1A const current charge\n"
     (at 23.114 176.022 0)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid f087625a-1610-4008-8e1c-c48fbef5461a)
   )
 
-  (global_label "BATT-" (shape input) (at 52.07 38.354 270) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify right))
-    (uuid 1915c407-f1f8-4e72-8a50-6f4840cc9878)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 52.07 47.3005 90)
-      (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
+  (label "8.4V Out" (at 46.99 52.578 90) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid fb81c3f0-a7d5-4e47-837e-a14ae5f6bc75)
   )
+
   (global_label "8.4V" (shape input) (at 134.366 156.21 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left))
     (uuid 371afafb-4b16-4a65-9199-8403288315c0)
@@ -777,17 +792,10 @@
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
-  (global_label "Cell1+" (shape input) (at 49.53 38.354 270) (fields_autoplaced)
+  (global_label "BATT_LVL_MID" (shape input) (at 49.53 38.354 270) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 96a5db80-c01c-4179-942e-69b28a2e55ae)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 49.53 47.9052 90)
-      (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
-  )
-  (global_label "BATT+" (shape input) (at 46.99 38.354 270) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify right))
-    (uuid 9bac31e2-2043-4bfc-80bc-42149ce2b8cf)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 46.99 47.3005 90)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 49.53 54.1343 90)
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
@@ -823,7 +831,7 @@
     )
     (pin "1" (uuid b2f6bdae-45ed-40c2-bdf4-9960ee15172b))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR059") (unit 1)
         )
@@ -849,7 +857,7 @@
     (pin "2" (uuid 11494b22-3752-40e6-b543-e771f0bfd066))
     (pin "1" (uuid acfc874a-ab29-4b33-ad80-98ebe9163681))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "C34") (unit 1)
         )
@@ -874,7 +882,7 @@
     )
     (pin "1" (uuid f4ab2648-05d9-4c6e-9779-2c687313e733))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR042") (unit 1)
         )
@@ -900,7 +908,7 @@
     (pin "1" (uuid e82da27d-9153-4073-ae54-d9194e64d856))
     (pin "2" (uuid 05a42bfe-4c16-47d2-9aee-f86751c354a5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "F3") (unit 1)
         )
@@ -925,7 +933,7 @@
     )
     (pin "1" (uuid c19e8253-7a0e-4523-bd4b-339b67524f23))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR039") (unit 1)
         )
@@ -950,7 +958,7 @@
     )
     (pin "1" (uuid f82b109f-cbee-4609-92af-3518d923c9c6))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR028") (unit 1)
         )
@@ -975,7 +983,7 @@
     )
     (pin "1" (uuid 6eb314a4-ef5f-47d7-b34c-29e0b484bf8e))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR040") (unit 1)
         )
@@ -1000,7 +1008,7 @@
     )
     (pin "1" (uuid e2ea686e-60ea-4983-821c-d4401f6bf048))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR070") (unit 1)
         )
@@ -1025,7 +1033,7 @@
     )
     (pin "1" (uuid 09f1b552-1c48-47ff-97a2-c27e1c411b65))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR014") (unit 1)
         )
@@ -1051,7 +1059,7 @@
     (pin "1" (uuid 567377f9-c8b4-4446-854a-b60b79b9d399))
     (pin "2" (uuid 2af9cfa4-6b5b-4101-a738-93d733ba9a93))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "D16") (unit 1)
         )
@@ -1077,7 +1085,7 @@
     (pin "1" (uuid e12033ca-37e9-42c2-b1e3-b0a038c260b0))
     (pin "2" (uuid cc372487-d610-4433-a1a8-9384c41c8c46))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "C20") (unit 1)
         )
@@ -1102,7 +1110,7 @@
     )
     (pin "1" (uuid aa67b5b4-5116-4af9-b6e4-1348e4ad1ad7))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR022") (unit 1)
         )
@@ -1127,7 +1135,7 @@
     )
     (pin "1" (uuid bb7255cf-cfe8-4de5-af4e-bcd7ebc12972))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR030") (unit 1)
         )
@@ -1153,7 +1161,7 @@
     (pin "1" (uuid 95d1eb74-d7eb-42da-b545-6a1ab03d193b))
     (pin "2" (uuid 02b171ba-75c9-4664-9386-5f5b0959dc97))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "F1") (unit 1)
         )
@@ -1225,7 +1233,7 @@
     (pin "3" (uuid f1f12d74-4343-4fcf-9045-56416c96bdcd))
     (pin "2" (uuid d27bc13c-8fef-475f-9652-605236dd627b))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "U3") (unit 1)
         )
@@ -1251,7 +1259,7 @@
     (pin "1" (uuid 62c5c01b-7ae8-4c0c-91bc-8b8a1ca3b8cc))
     (pin "2" (uuid a169a5f0-9ccb-4477-81dd-049306756a46))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "C21") (unit 1)
         )
@@ -1277,7 +1285,7 @@
     (pin "2" (uuid 497e1460-518a-40f5-baad-e914aaf44371))
     (pin "1" (uuid 3fcba00c-1d28-458f-96dd-a8d04082fd73))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "D14") (unit 1)
         )
@@ -1302,35 +1310,9 @@
     )
     (pin "1" (uuid ffe2ccde-f4a2-4720-a6d1-309d63f30734))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR041") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:Polyfuse") (at 59.69 64.262 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid cf131186-0c21-4538-9873-8fb9ff7f4ab9)
-    (property "Reference" "F2" (at 62.23 62.992 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "2.2A Polyfuse 1210" (at 62.23 65.532 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Fuse:Fuse_1210_3225Metric_Pad1.42x2.65mm_HandSolder" (at 60.96 69.342 0)
-      (effects (font (size 1.27 1.27)) (justify left) hide)
-    )
-    (property "Datasheet" "~" (at 59.69 64.262 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "2" (uuid 7fcbe39d-4172-488c-93be-5bbe58e2aaaa))
-    (pin "1" (uuid fc2b6af9-924c-4c6d-a5e2-249b9db57b42))
-    (instances
-      (project "iJet"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
-          (reference "F2") (unit 1)
         )
       )
     )
@@ -1354,7 +1336,7 @@
     (pin "2" (uuid 48094159-684d-4779-a06d-8a74d56bce51))
     (pin "1" (uuid 0fc8d50d-1b8c-4e7a-9465-a5dbb2a6bf6e))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "R27") (unit 1)
         )
@@ -1371,7 +1353,7 @@
     (property "Value" "Conn_01x11" (at 59.69 29.21 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Footprint" "Connector_PinSocket_2.54mm:PinSocket_1x11_P2.54mm_Vertical" (at 59.69 33.274 0)
+    (property "Footprint" "Board:Board_outline" (at 59.69 33.274 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 59.69 33.274 0)
@@ -1389,7 +1371,7 @@
     (pin "9" (uuid 41d51a7a-0d02-4173-9655-7184124d62ef))
     (pin "6" (uuid f460207b-1441-4b2e-933f-5f6fbcf2c35b))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "J4") (unit 1)
         )
@@ -1414,7 +1396,7 @@
     )
     (pin "1" (uuid 9f57d7f9-d8ab-4eb2-bdba-3380fd101687))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR044") (unit 1)
         )
@@ -1439,7 +1421,7 @@
     )
     (pin "1" (uuid 20dd7487-dcf4-40fa-b720-73ab2cac9dc5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993"
           (reference "#PWR031") (unit 1)
         )
@@ -1458,7 +1440,7 @@
       (effects (font (size 1.27 1.27)) (justify left top))
     )
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993" (page "7"))
       )
     )
@@ -1475,7 +1457,7 @@
       (effects (font (size 1.27 1.27)) (justify left top))
     )
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55" (page "6"))
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993" (page "2"))
       )

@@ -3,7 +3,7 @@ software/linux/build/
 software/firmware/build/
 
 #Ignore KiCad backups
-hardware/iJet-backups/
+hardware/OAC-backups/
 
 # Ignore VSCode settings
 .vscode/
@@ -13,6 +13,7 @@ hardware/iJet-backups/
 *.tmp
 *.swp
 *.swo
+*.lck
 
 # Ignore editor backup files
 *~

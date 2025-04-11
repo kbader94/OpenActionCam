@@ -4,6 +4,14 @@
 
   (paper "A4")
 
+  (title_block
+    (title "OpenActionCam")
+    (date "2025-04-10")
+    (rev "0.2")
+    (company "KBader94")
+    (comment 1 "https://github.com/kbader94/OpenActionCam")
+  )
+
   (lib_symbols
     (symbol "Device:Battery_Cell" (pin_numbers hide) (pin_names (offset 0) hide) (in_bom yes) (on_board yes)
       (property "Reference" "BT" (at 2.54 2.54 0)
@@ -758,9 +766,6 @@
   (junction (at 226.822 43.688) (diameter 0) (color 0 0 0 0)
     (uuid a2a72028-5938-491e-a5db-5ed8e54ae784)
   )
-  (junction (at 61.722 43.688) (diameter 0) (color 0 0 0 0)
-    (uuid bf852642-88b6-4ba2-a98f-195db48aa227)
-  )
   (junction (at 104.394 119.634) (diameter 0) (color 0 0 0 0)
     (uuid cb8f1224-f3fd-46c5-8a3e-33519d32c23f)
   )
@@ -847,10 +852,6 @@
   (wire (pts (xy 82.55 52.832) (xy 82.55 55.372))
     (stroke (width 0) (type default))
     (uuid 4e20908b-c6bd-48bc-ac2c-8dc2d38814da)
-  )
-  (wire (pts (xy 35.814 43.688) (xy 61.722 43.688))
-    (stroke (width 0) (type default))
-    (uuid 4f360c6e-9f65-4e15-a5ce-a2d005a961bd)
   )
   (wire (pts (xy 168.148 84.074) (xy 202.692 84.074))
     (stroke (width 0) (type default))
@@ -1036,6 +1037,10 @@
     (uuid 9671e8d4-248b-412c-ad3f-01d3e46a9641)
   )
 
+  (label "8.4unsafe" (at 61.722 61.468 0) (fields_autoplaced)
+    (effects (font (size 1.27 1.27)) (justify left bottom))
+    (uuid 03120459-20ae-4027-9bf4-be5622c3037d)
+  )
   (label "Cell1+" (at 69.342 78.994 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 2ad847ed-8c88-4edd-830f-c8a6be80af94)
@@ -1044,13 +1049,9 @@
     (effects (font (size 1.27 1.27)) (justify left bottom))
     (uuid 4b811dcb-c38b-4339-ab26-706e5fd3e03e)
   )
-  (label "BATT+" (at 39.624 43.688 0) (fields_autoplaced)
+  (label "d2d" (at 197.612 119.634 0) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid d61de033-bdec-4c42-9e74-6437f8d236cd)
-  )
-  (label "BATT+" (at 87.122 43.688 0) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify left bottom))
-    (uuid d8606838-45f6-467e-951c-42b750191332)
+    (uuid efd6df9b-377d-47e0-8917-a944e0f7f72d)
   )
 
   (global_label "8.4V" (shape input) (at 259.842 43.688 0) (fields_autoplaced)
@@ -1060,24 +1061,17 @@
       (effects (font (size 1.27 1.27)) (justify left) hide)
     )
   )
-  (global_label "BATT-" (shape input) (at 40.894 119.634 180) (fields_autoplaced)
+  (global_label "BATT_LVL-" (shape input) (at 40.894 119.634 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 68d03b20-41e7-49b8-ac94-5a40ff67e0d1)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 31.9475 119.634 0)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 27.8351 119.634 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
-  (global_label "BATT+" (shape input) (at 35.814 43.688 180) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify right))
-    (uuid 8fcd3d56-100d-41f3-9ab4-821d71949696)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 26.8675 43.688 0)
-      (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
-  )
-  (global_label "Cell1+" (shape input) (at 38.354 78.994 180) (fields_autoplaced)
+  (global_label "BATT_LVL_MID" (shape input) (at 38.354 78.994 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid 9b539a6d-35b0-4511-bf3e-e12dc5b006d7)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 28.8028 78.994 0)
+    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 22.5737 78.994 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
@@ -1100,7 +1094,7 @@
     (pin "1" (uuid 9fbd1330-b269-4c41-99b7-9fe13a5a9696))
     (pin "2" (uuid 4b13547b-49cb-4682-a08e-52d649e8d1ce))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "C27") (unit 1)
         )
@@ -1126,7 +1120,7 @@
     (pin "1" (uuid 100ea347-51b9-4e54-b76f-e9eec4ff1cf4))
     (pin "2" (uuid 3921d708-2dfc-45ea-9bac-2ccad967dfb5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "R32") (unit 1)
         )
@@ -1152,7 +1146,7 @@
     (pin "2" (uuid 813b431e-5947-4c37-9990-420d17259b15))
     (pin "1" (uuid f65ddcf7-6199-4286-8d63-a819096f25de))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "F5") (unit 1)
         )
@@ -1169,7 +1163,7 @@
     (property "Value" "Battery_Cell" (at 45.72 76.962 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "254:BAT_254" (at 61.722 74.676 90)
+    (property "Footprint" "Battery Holder - 18650:BAT_254" (at 61.722 74.676 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 61.722 74.676 90)
@@ -1178,7 +1172,7 @@
     (pin "1" (uuid f88cf26b-4ac8-4994-a691-dd5987a9159b))
     (pin "2" (uuid 50a4b4e1-713b-4504-92e7-cfbc4a004c45))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "BT3") (unit 1)
         )
@@ -1204,7 +1198,7 @@
     (pin "1" (uuid d10987d2-f445-4ca0-9542-d614dfb47d70))
     (pin "2" (uuid c5f0d5f7-643e-4243-8db5-89d333f078ea))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "R28") (unit 1)
         )
@@ -1240,7 +1234,7 @@
     (pin "2" (uuid c2b28df4-9db7-403e-8888-1505db903c5d))
     (pin "3" (uuid 0dced52d-0720-4e36-8877-de07522c7f15))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "Q1") (unit 1)
         )
@@ -1266,7 +1260,7 @@
     (pin "2" (uuid 813b431e-5947-4c37-9990-420d17259b16))
     (pin "1" (uuid f65ddcf7-6199-4286-8d63-a819096f25df))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "F4") (unit 1)
         )
@@ -1283,7 +1277,7 @@
     (property "Value" "Battery_Cell" (at 45.466 117.348 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "254:BAT_254" (at 61.722 115.57 90)
+    (property "Footprint" "Battery Holder - 18650:BAT_254" (at 61.722 115.57 90)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 61.722 115.57 90)
@@ -1292,7 +1286,7 @@
     (pin "1" (uuid 5b7b3d18-4b51-43f2-bcca-74abd74c59a5))
     (pin "2" (uuid ddcc5b68-84de-49a9-8bce-27eb117b1696))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "BT4") (unit 1)
         )
@@ -1328,7 +1322,7 @@
     (pin "2" (uuid 23e6d249-6d50-44fb-ba3c-e691d43d5f54))
     (pin "3" (uuid 77603a84-afe0-4e33-8004-6bef2c4eeeb4))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "Q3") (unit 1)
         )
@@ -1354,7 +1348,7 @@
     (pin "1" (uuid afb32ec5-4bdd-42bf-86a7-fa8930c3213b))
     (pin "2" (uuid 1d76a43a-5133-41b0-b826-221d72476cd5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "R29") (unit 1)
         )
@@ -1380,7 +1374,7 @@
     (pin "2" (uuid 7899403b-da9d-427f-a87b-1cedb25c8592))
     (pin "1" (uuid 3df15088-7688-44ff-8e04-0a696f631f91))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "D13") (unit 1)
         )
@@ -1406,7 +1400,7 @@
     (pin "1" (uuid a57a88d5-3d43-4260-99b1-f4346878238c))
     (pin "2" (uuid a3a2bf2e-4146-49a9-a924-3e3375b9cce5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "C29") (unit 1)
         )
@@ -1417,10 +1411,10 @@
   (symbol (lib_id "Simulation_SPICE:NMOS") (at 212.852 122.174 90) (unit 1)
     (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
     (uuid 96a1a222-d4f8-44b5-bf26-c872b08fbfab)
-    (property "Reference" "Q6" (at 212.852 112.522 90)
+    (property "Reference" "Q6" (at 212.852 113.03 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "NMOS" (at 212.852 115.062 90)
+    (property "Value" "AOSP36326C" (at 212.852 115.57 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "FET - AOSP36326C:SOIC127P490X600X175-8N" (at 210.312 117.094 0)
@@ -1442,7 +1436,7 @@
     (pin "3" (uuid c0ec0032-7641-4066-8629-75b12925ae8d))
     (pin "2" (uuid 406043e3-7847-4b08-85c1-a0202acce3d3))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "Q6") (unit 1)
         )
@@ -1467,7 +1461,7 @@
     )
     (pin "1" (uuid 756b359b-68fc-4e6c-9224-77ad7e05d8d1))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "#PWR043") (unit 1)
         )
@@ -1493,7 +1487,7 @@
     (pin "1" (uuid b2b09ec9-147f-4527-8c4d-384b9745c1a7))
     (pin "2" (uuid 072cf3eb-a890-40af-98af-516f5c390da5))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "C28") (unit 1)
         )
@@ -1562,7 +1556,7 @@
     (pin "3" (uuid cda67f73-ac3a-4070-a074-23062e0109dd))
     (pin "5" (uuid f0bfd1e9-7f4d-43bf-9e55-fbc3951454f4))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "U11") (unit 1)
         )
@@ -1588,7 +1582,7 @@
     (pin "2" (uuid a15284a7-f81d-424c-bba1-daf0abf727c2))
     (pin "1" (uuid 02ec9e31-44a4-4884-9756-a626dbf069cf))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "C26") (unit 1)
         )
@@ -1614,7 +1608,7 @@
     (pin "2" (uuid 325244d1-0840-41ac-afae-5292a6f9581a))
     (pin "1" (uuid 9efe59b2-401e-4cf7-9a59-7b605ac911dd))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "D15") (unit 1)
         )
@@ -1640,7 +1634,7 @@
     (pin "1" (uuid 42a777c9-f2bc-4275-9e7d-ca64c5d461c0))
     (pin "2" (uuid 413aa529-5fea-4716-aebb-f47a3f256c6d))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "R31") (unit 1)
         )
@@ -1654,7 +1648,7 @@
     (property "Reference" "Q7" (at 191.008 123.698 90)
       (effects (font (size 1.27 1.27)))
     )
-    (property "Value" "NMOS" (at 191.008 126.238 90)
+    (property "Value" "AOSP36326C" (at 191.008 126.238 90)
       (effects (font (size 1.27 1.27)))
     )
     (property "Footprint" "FET - AOSP36326C:SOIC127P490X600X175-8N" (at 193.548 122.174 0)
@@ -1676,7 +1670,7 @@
     (pin "3" (uuid e742bfd7-fbc5-4403-96bf-3f89283bc05e))
     (pin "2" (uuid 7f0c07cb-208c-4f3f-91e0-c5746ce07184))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "Q7") (unit 1)
         )
@@ -1702,7 +1696,7 @@
     (pin "1" (uuid 8699b626-e825-4196-b307-b5c990f7473e))
     (pin "2" (uuid 6536839b-763b-4e2c-a787-8d342f861151))
     (instances
-      (project "iJet"
+      (project "OAC"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/800e290e-8cfb-4946-9373-3e863e65a993/958a8f8b-4f02-4f0b-8738-caa770ee5158"
           (reference "R33") (unit 1)
         )
