@@ -541,24 +541,8 @@
       ""
     ],
     [
-      "95e23f0a-de7c-483b-8503-7238838df55e",
-      "Power Supply"
-    ],
-    [
       "22fcd688-33b8-49bf-bbf7-32dc41075404",
       "LED Array"
-    ],
-    [
-      "800e290e-8cfb-4946-9373-3e863e65a993",
-      "Power BMS"
-    ],
-    [
-      "958a8f8b-4f02-4f0b-8738-caa770ee5158",
-      "Battery Pack & Protection"
-    ],
-    [
-      "39e953c3-4b4a-4927-a766-84b5a3b5cf49",
-      "Power State"
     ]
   ],
   "text_variables": {}

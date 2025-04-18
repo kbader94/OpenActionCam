@@ -13,58 +13,6 @@
   )
 
   (lib_symbols
-    (symbol "+5V_1" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
-      (property "Reference" "#PWR" (at 0 -3.81 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "Value" "+5V_1" (at 0 3.556 0)
-        (effects (font (size 1.27 1.27)))
-      )
-      (property "Footprint" "" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "Datasheet" "" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_keywords" "global power" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_description" "Power symbol creates a global label with name \"+5V\"" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (symbol "+5V_1_0_1"
-        (polyline
-          (pts
-            (xy -0.762 1.27)
-            (xy 0 2.54)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 0 0)
-            (xy 0 2.54)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 0 2.54)
-            (xy 0.762 1.27)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-      )
-      (symbol "+5V_1_1_1"
-        (pin power_in line (at 0 0 90) (length 0) hide
-          (name "+5V" (effects (font (size 1.27 1.27))))
-          (number "1" (effects (font (size 1.27 1.27))))
-        )
-      )
-    )
     (symbol "Connector:Conn_01x02_Pin" (pin_names (offset 1.016) hide) (in_bom yes) (on_board yes)
       (property "Reference" "J" (at 0 2.54 0)
         (effects (font (size 1.27 1.27)))
@@ -345,89 +293,6 @@
         )
       )
     )
-    (symbol "Device:LED" (pin_numbers hide) (pin_names (offset 1.016) hide) (in_bom yes) (on_board yes)
-      (property "Reference" "D" (at 0 2.54 0)
-        (effects (font (size 1.27 1.27)))
-      )
-      (property "Value" "LED" (at 0 -2.54 0)
-        (effects (font (size 1.27 1.27)))
-      )
-      (property "Footprint" "" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "Datasheet" "~" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_keywords" "LED diode" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_description" "Light emitting diode" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_fp_filters" "LED* LED_SMD:* LED_THT:*" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (symbol "LED_0_1"
-        (polyline
-          (pts
-            (xy -1.27 -1.27)
-            (xy -1.27 1.27)
-          )
-          (stroke (width 0.254) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy -1.27 0)
-            (xy 1.27 0)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 1.27 -1.27)
-            (xy 1.27 1.27)
-            (xy -1.27 0)
-            (xy 1.27 -1.27)
-          )
-          (stroke (width 0.254) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy -3.048 -0.762)
-            (xy -4.572 -2.286)
-            (xy -3.81 -2.286)
-            (xy -4.572 -2.286)
-            (xy -4.572 -1.524)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy -1.778 -0.762)
-            (xy -3.302 -2.286)
-            (xy -2.54 -2.286)
-            (xy -3.302 -2.286)
-            (xy -3.302 -1.524)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-      )
-      (symbol "LED_1_1"
-        (pin passive line (at -3.81 0 0) (length 2.54)
-          (name "K" (effects (font (size 1.27 1.27))))
-          (number "1" (effects (font (size 1.27 1.27))))
-        )
-        (pin passive line (at 3.81 0 180) (length 2.54)
-          (name "A" (effects (font (size 1.27 1.27))))
-          (number "2" (effects (font (size 1.27 1.27))))
-        )
-      )
-    )
     (symbol "Device:R" (pin_numbers hide) (pin_names (offset 0)) (in_bom yes) (on_board yes)
       (property "Reference" "R" (at 2.032 0 90)
         (effects (font (size 1.27 1.27)))
@@ -464,119 +329,6 @@
         (pin passive line (at 0 -3.81 90) (length 1.27)
           (name "~" (effects (font (size 1.27 1.27))))
           (number "2" (effects (font (size 1.27 1.27))))
-        )
-      )
-    )
-    (symbol "LED:WS2812B" (pin_names (offset 0.254)) (in_bom yes) (on_board yes)
-      (property "Reference" "D" (at 5.08 5.715 0)
-        (effects (font (size 1.27 1.27)) (justify right bottom))
-      )
-      (property "Value" "WS2812B" (at 1.27 -5.715 0)
-        (effects (font (size 1.27 1.27)) (justify left top))
-      )
-      (property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm" (at 1.27 -7.62 0)
-        (effects (font (size 1.27 1.27)) (justify left top) hide)
-      )
-      (property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" (at 2.54 -9.525 0)
-        (effects (font (size 1.27 1.27)) (justify left top) hide)
-      )
-      (property "ki_keywords" "RGB LED NeoPixel addressable" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_description" "RGB LED with integrated controller" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_fp_filters" "LED*WS2812*PLCC*5.0x5.0mm*P3.2mm*" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (symbol "WS2812B_0_0"
-        (text "RGB" (at 2.286 -4.191 0)
-          (effects (font (size 0.762 0.762)))
-        )
-      )
-      (symbol "WS2812B_0_1"
-        (polyline
-          (pts
-            (xy 1.27 -3.556)
-            (xy 1.778 -3.556)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 1.27 -2.54)
-            (xy 1.778 -2.54)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 4.699 -3.556)
-            (xy 2.667 -3.556)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 2.286 -2.54)
-            (xy 1.27 -3.556)
-            (xy 1.27 -3.048)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 2.286 -1.524)
-            (xy 1.27 -2.54)
-            (xy 1.27 -2.032)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 3.683 -1.016)
-            (xy 3.683 -3.556)
-            (xy 3.683 -4.064)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 4.699 -1.524)
-            (xy 2.667 -1.524)
-            (xy 3.683 -3.556)
-            (xy 4.699 -1.524)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (rectangle (start 5.08 5.08) (end -5.08 -5.08)
-          (stroke (width 0.254) (type default))
-          (fill (type background))
-        )
-      )
-      (symbol "WS2812B_1_1"
-        (pin power_in line (at 0 7.62 270) (length 2.54)
-          (name "VDD" (effects (font (size 1.27 1.27))))
-          (number "1" (effects (font (size 1.27 1.27))))
-        )
-        (pin output line (at 7.62 0 180) (length 2.54)
-          (name "DOUT" (effects (font (size 1.27 1.27))))
-          (number "2" (effects (font (size 1.27 1.27))))
-        )
-        (pin power_in line (at 0 -7.62 90) (length 2.54)
-          (name "VSS" (effects (font (size 1.27 1.27))))
-          (number "3" (effects (font (size 1.27 1.27))))
-        )
-        (pin input line (at -7.62 0 0) (length 2.54)
-          (name "DIN" (effects (font (size 1.27 1.27))))
-          (number "4" (effects (font (size 1.27 1.27))))
         )
       )
     )
@@ -644,58 +396,6 @@
         )
       )
     )
-    (symbol "power:+5V" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
-      (property "Reference" "#PWR" (at 0 -3.81 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "Value" "+5V" (at 0 3.556 0)
-        (effects (font (size 1.27 1.27)))
-      )
-      (property "Footprint" "" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "Datasheet" "" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_keywords" "power-flag" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (property "ki_description" "Power symbol creates a global label with name \"+5V\"" (at 0 0 0)
-        (effects (font (size 1.27 1.27)) hide)
-      )
-      (symbol "+5V_0_1"
-        (polyline
-          (pts
-            (xy -0.762 1.27)
-            (xy 0 2.54)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 0 0)
-            (xy 0 2.54)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-        (polyline
-          (pts
-            (xy 0 2.54)
-            (xy 0.762 1.27)
-          )
-          (stroke (width 0) (type default))
-          (fill (type none))
-        )
-      )
-      (symbol "+5V_1_1"
-        (pin power_in line (at 0 0 90) (length 0) hide
-          (name "+5V" (effects (font (size 1.27 1.27))))
-          (number "1" (effects (font (size 1.27 1.27))))
-        )
-      )
-    )
     (symbol "power:GND" (power) (pin_names (offset 0)) (in_bom yes) (on_board yes)
       (property "Reference" "#PWR" (at 0 -6.35 0)
         (effects (font (size 1.27 1.27)) hide)
@@ -743,9 +443,6 @@
   )
   (junction (at 80.772 87.122) (diameter 0) (color 0 0 0 0)
     (uuid 1c3ff156-22a7-4bb8-ac46-930ec1cddfaf)
-  )
-  (junction (at 193.802 119.634) (diameter 0) (color 0 0 0 0)
-    (uuid 213d4be3-a5da-421a-b8a7-b06b5ad1d307)
   )
   (junction (at 80.772 45.212) (diameter 0) (color 0 0 0 0)
     (uuid 21b0c88b-b1ac-4add-ac44-212576a88273)
@@ -841,8 +538,6 @@
     (uuid f7b700b0-f1c2-4ea8-8571-62f7c2a36c8b)
   )
 
-  (no_connect (at 201.422 127.254) (uuid 75f7d9a9-1da4-436b-ad89-bbfd3b845c7f))
-
   (wire (pts (xy 188.468 62.484) (xy 194.31 62.484))
     (stroke (width 0) (type default))
     (uuid 0120d9a0-1b98-4c1c-a908-63a4978a5b79)
@@ -854,10 +549,6 @@
   (wire (pts (xy 29.718 80.899) (xy 34.798 80.899))
     (stroke (width 0) (type default))
     (uuid 01f2086c-79ed-4dbe-ac50-4e29e6083812)
-  )
-  (wire (pts (xy 165.1 127.254) (xy 170.942 127.254))
-    (stroke (width 0) (type default))
-    (uuid 02ed68b5-429c-411d-95f6-4385968866c5)
   )
   (wire (pts (xy 35.306 45.085) (xy 52.832 45.085))
     (stroke (width 0) (type default))
@@ -883,10 +574,6 @@
     (stroke (width 0) (type default))
     (uuid 08462438-365c-456f-aa91-6b4f305d52f5)
   )
-  (wire (pts (xy 218.44 135.89) (xy 215.646 135.89))
-    (stroke (width 0) (type default))
-    (uuid 0fafd468-1a2b-4c95-a890-991f84fb2812)
-  )
   (wire (pts (xy 147.066 74.422) (xy 147.066 87.122))
     (stroke (width 0) (type default))
     (uuid 1049ccb9-0c74-4c0e-80a9-e9d47c346bcf)
@@ -906,10 +593,6 @@
   (wire (pts (xy 59.182 134.112) (xy 59.182 176.784))
     (stroke (width 0) (type default))
     (uuid 153a0075-0550-49fc-894a-6449724d19d5)
-  )
-  (wire (pts (xy 225.298 143.764) (xy 223.266 143.764))
-    (stroke (width 0) (type default))
-    (uuid 167b3a9a-3e5b-4937-aaa2-50e24123102e)
   )
   (wire (pts (xy 108.966 87.122) (xy 112.141 87.122))
     (stroke (width 0) (type default))
@@ -939,14 +622,6 @@
     (stroke (width 0) (type default))
     (uuid 20c40252-7ece-4ec4-be5b-c1b535ec0616)
   )
-  (wire (pts (xy 215.138 115.316) (xy 215.138 123.19))
-    (stroke (width 0) (type default))
-    (uuid 20cd62f4-2e6a-4086-9c24-99d36399ac11)
-  )
-  (wire (pts (xy 246.126 115.57) (xy 246.126 123.444))
-    (stroke (width 0) (type default))
-    (uuid 2129f117-e56a-489e-8965-3f6447fc233b)
-  )
   (wire (pts (xy 80.772 184.277) (xy 147.066 184.277))
     (stroke (width 0) (type default))
     (uuid 23a3d316-113f-4f79-9fb6-5dc21389f767)
@@ -954,14 +629,6 @@
   (wire (pts (xy 66.167 116.332) (xy 66.167 128.905))
     (stroke (width 0) (type default))
     (uuid 245ebddb-0eda-4a23-b360-7086b1c3f666)
-  )
-  (wire (pts (xy 224.79 115.316) (xy 224.79 123.19))
-    (stroke (width 0) (type default))
-    (uuid 271ae4e0-171b-4337-adee-4b472b6827c1)
-  )
-  (wire (pts (xy 220.98 135.89) (xy 225.298 135.89))
-    (stroke (width 0) (type default))
-    (uuid 29ba3683-7fcb-4946-81a9-2b2ed2ed7c38)
   )
   (wire (pts (xy 45.466 80.899) (xy 45.466 74.295))
     (stroke (width 0) (type default))
@@ -1043,10 +710,6 @@
     (stroke (width 0) (type default))
     (uuid 51e4bd8e-a654-4a2a-888c-648061c79e04)
   )
-  (wire (pts (xy 182.88 119.634) (xy 193.802 119.634))
-    (stroke (width 0) (type default))
-    (uuid 52207de3-a4c0-403d-9ce3-3075c54158b4)
-  )
   (wire (pts (xy 112.141 158.877) (xy 112.141 161.417))
     (stroke (width 0) (type default))
     (uuid 542880f9-7296-4e5d-868a-df8776cb1be8)
@@ -1070,10 +733,6 @@
   (wire (pts (xy 112.141 42.672) (xy 112.141 45.212))
     (stroke (width 0) (type default))
     (uuid 5cb4b352-2b5e-4557-99ab-6c29c49c743f)
-  )
-  (wire (pts (xy 248.92 115.57) (xy 246.126 115.57))
-    (stroke (width 0) (type default))
-    (uuid 603a9ac3-a05c-440d-9c1a-76b639c43fc5)
   )
   (wire (pts (xy 80.772 87.122) (xy 88.9 87.122))
     (stroke (width 0) (type default))
@@ -1119,14 +778,6 @@
     (stroke (width 0) (type default))
     (uuid 76fd6a2b-09e0-46b7-a6f3-e42bbdd0ce22)
   )
-  (wire (pts (xy 215.646 135.89) (xy 215.646 143.764))
-    (stroke (width 0) (type default))
-    (uuid 77b3e52d-10b2-4415-a162-ef69ae04c210)
-  )
-  (wire (pts (xy 225.298 135.89) (xy 225.298 143.764))
-    (stroke (width 0) (type default))
-    (uuid 78018849-5d1e-41a5-862d-e1e710c27566)
-  )
   (wire (pts (xy 59.182 92.202) (xy 121.666 92.202))
     (stroke (width 0) (type default))
     (uuid 7ac09ba9-8307-48e3-89a9-689acd4654b0)
@@ -1147,10 +798,6 @@
     (stroke (width 0) (type default))
     (uuid 7e16e505-5fd0-4935-b5a8-895af779cb07)
   )
-  (wire (pts (xy 220.472 115.316) (xy 224.79 115.316))
-    (stroke (width 0) (type default))
-    (uuid 81313533-d015-4b22-bc0c-8a49a008de1c)
-  )
   (wire (pts (xy 91.44 131.318) (xy 101.346 131.318))
     (stroke (width 0) (type default))
     (uuid 81d2c387-e41b-426e-94e0-d3b022fe4e34)
@@ -1170,14 +817,6 @@
   (wire (pts (xy 147.066 141.732) (xy 147.066 134.112))
     (stroke (width 0) (type default))
     (uuid 896534be-8492-4c32-b03d-57e57c19cb1d)
-  )
-  (wire (pts (xy 193.802 134.874) (xy 193.802 145.796))
-    (stroke (width 0) (type default))
-    (uuid 8aed7a1e-8f8d-4b9e-85bf-acf807973dda)
-  )
-  (wire (pts (xy 246.634 136.144) (xy 246.634 144.018))
-    (stroke (width 0) (type default))
-    (uuid 8c1b6b1c-bfb7-461a-9c2c-0b805d69fe46)
   )
   (wire (pts (xy 147.066 158.877) (xy 147.066 171.577))
     (stroke (width 0) (type default))
@@ -1207,17 +846,9 @@
     (stroke (width 0) (type default))
     (uuid 9d2d3c5f-1262-4d17-806d-58ee4db37708)
   )
-  (wire (pts (xy 193.802 115.316) (xy 193.802 119.634))
-    (stroke (width 0) (type default))
-    (uuid 9f08fd71-6a3a-46cb-9b4a-974e3cf880a5)
-  )
   (wire (pts (xy 108.966 171.45) (xy 112.141 171.45))
     (stroke (width 0) (type default))
     (uuid 9f3dc033-007c-4589-80dd-bdb3da6ff7bb)
-  )
-  (wire (pts (xy 178.562 127.254) (xy 186.182 127.254))
-    (stroke (width 0) (type default))
-    (uuid a17f6e8f-078c-40eb-b738-bb47961bbb1d)
   )
   (wire (pts (xy 77.597 128.905) (xy 80.772 128.905))
     (stroke (width 0) (type default))
@@ -1279,10 +910,6 @@
     (stroke (width 0) (type default))
     (uuid b4c95af0-a028-4fe2-a29b-9e95f0f5d38e)
   )
-  (wire (pts (xy 251.968 136.144) (xy 256.286 136.144))
-    (stroke (width 0) (type default))
-    (uuid b5ce3acb-e278-487a-968c-d6f5c851f892)
-  )
   (wire (pts (xy 147.066 116.332) (xy 147.066 129.032))
     (stroke (width 0) (type default))
     (uuid b77ca27c-d2f1-4899-beee-95e92138b2d7)
@@ -1291,17 +918,9 @@
     (stroke (width 0) (type default))
     (uuid bdcd15cb-921d-4f04-a033-2d02f078b92a)
   )
-  (wire (pts (xy 255.778 123.444) (xy 253.746 123.444))
-    (stroke (width 0) (type default))
-    (uuid c0ec9e2f-574f-44b0-a9bf-1077aa86c05f)
-  )
   (wire (pts (xy 29.718 116.205) (xy 34.798 116.205))
     (stroke (width 0) (type default))
     (uuid c14242dd-5d66-4df4-a359-0e1872c354ea)
-  )
-  (wire (pts (xy 224.79 123.19) (xy 222.758 123.19))
-    (stroke (width 0) (type default))
-    (uuid c1b5b2e8-7489-42af-b921-e01ca96ada2a)
   )
   (wire (pts (xy 108.966 45.212) (xy 112.141 45.212))
     (stroke (width 0) (type default))
@@ -1322,10 +941,6 @@
   (wire (pts (xy 204.978 62.484) (xy 204.978 67.818))
     (stroke (width 0) (type default))
     (uuid ca78bb36-43d9-488d-b1e7-8be0d16a0ae2)
-  )
-  (wire (pts (xy 251.46 115.57) (xy 255.778 115.57))
-    (stroke (width 0) (type default))
-    (uuid cb0e4d04-f43d-425e-bccb-686ea86c946b)
   )
   (wire (pts (xy 112.141 84.582) (xy 112.141 87.122))
     (stroke (width 0) (type default))
@@ -1367,21 +982,9 @@
     (stroke (width 0) (type default))
     (uuid dceb7cb9-4c78-4268-98f6-c9ff8ed77afe)
   )
-  (wire (pts (xy 182.88 107.442) (xy 182.88 119.634))
-    (stroke (width 0) (type default))
-    (uuid dd6845e3-52df-4ef9-9b7f-114658664da8)
-  )
   (wire (pts (xy 112.141 87.122) (xy 121.666 87.122))
     (stroke (width 0) (type default))
     (uuid dea6e649-e303-4af1-92ca-bea33668a59b)
-  )
-  (wire (pts (xy 217.932 115.316) (xy 215.138 115.316))
-    (stroke (width 0) (type default))
-    (uuid e35e5f93-fc35-40d1-bb38-a7d3d0032992)
-  )
-  (wire (pts (xy 249.428 136.144) (xy 246.634 136.144))
-    (stroke (width 0) (type default))
-    (uuid e543f775-ac04-4ddf-9ab4-6a8f359d622c)
   )
   (wire (pts (xy 91.44 87.122) (xy 101.346 87.122))
     (stroke (width 0) (type default))
@@ -1390,10 +993,6 @@
   (wire (pts (xy 112.141 74.422) (xy 112.141 76.962))
     (stroke (width 0) (type default))
     (uuid e9ebec63-f31e-48f0-8115-d60ae13c13ae)
-  )
-  (wire (pts (xy 255.778 115.57) (xy 255.778 123.444))
-    (stroke (width 0) (type default))
-    (uuid ecb8c1af-5f8e-4025-b6da-b356c5696e9d)
   )
   (wire (pts (xy 66.294 32.512) (xy 112.141 32.512))
     (stroke (width 0) (type default))
@@ -1410,14 +1009,6 @@
   (wire (pts (xy 194.31 62.484) (xy 194.31 67.818))
     (stroke (width 0) (type default))
     (uuid f4a34b16-56ec-4ebb-a430-722d6f271a56)
-  )
-  (wire (pts (xy 256.286 144.018) (xy 254.254 144.018))
-    (stroke (width 0) (type default))
-    (uuid f71a1ada-6c29-4f3b-a3c6-c2daed9aec50)
-  )
-  (wire (pts (xy 256.286 136.144) (xy 256.286 144.018))
-    (stroke (width 0) (type default))
-    (uuid f938d115-226d-4d4e-9425-fff7fcab7c56)
   )
   (wire (pts (xy 80.772 129.032) (xy 88.9 129.032))
     (stroke (width 0) (type default))
@@ -1468,51 +1059,11 @@
       (effects (font (size 1.27 1.27)) (justify right) hide)
     )
   )
-  (global_label "STAT_LED" (shape input) (at 165.1 127.254 180) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify right))
-    (uuid a71aa301-ae2f-4abd-acd2-a7c194eaf407)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 153.3717 127.254 0)
-      (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
-  )
   (global_label "LED_EN" (shape input) (at 35.306 50.165 180) (fields_autoplaced)
     (effects (font (size 1.27 1.27)) (justify right))
     (uuid c910675f-a0e4-4340-bf1f-7bbe3f0f489d)
     (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 25.3315 50.165 0)
       (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
-  )
-  (global_label "STAT_LED" (shape input) (at 251.206 56.896 180) (fields_autoplaced)
-    (effects (font (size 1.27 1.27)) (justify right))
-    (uuid fa2a8a4b-6b14-4576-98ec-5686e4a7069e)
-    (property "Intersheetrefs" "${INTERSHEET_REFS}" (at 239.4777 56.896 0)
-      (effects (font (size 1.27 1.27)) (justify right) hide)
-    )
-  )
-
-  (symbol (lib_id "Device:LED") (at 249.936 123.444 180) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid 0314c8a4-2df7-41e6-9bf3-3285dee8a0d9)
-    (property "Reference" "D5" (at 249.936 119.634 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "3W LED" (at 250.952 126.492 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "LEDS - BEAD 3W LED:BEAD-3W-W-120-04" (at 249.936 123.444 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 249.936 123.444 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid b1142aef-28b0-4c3c-9492-1aea44cec38a))
-    (pin "2" (uuid 7a3ab71f-8d40-4034-92c7-12f0c181d4b3))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "D5") (unit 1)
-        )
-      )
     )
   )
 
@@ -1534,7 +1085,7 @@
     (pin "1" (uuid eafa44c5-6f31-4872-b146-71fdc31d48d6))
     (pin "2" (uuid f3d31f09-0592-4572-82b0-5377a479b794))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "L2") (unit 1)
         )
@@ -1560,7 +1111,7 @@
     (pin "2" (uuid 671ad0c0-b986-4af5-ab77-5440d21643d8))
     (pin "1" (uuid 9a51908c-3a2f-46de-877f-8320e9e195ff))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C4") (unit 1)
         )
@@ -1586,7 +1137,7 @@
     (pin "1" (uuid 015d1032-a328-4ee1-8eec-c3603aa39be9))
     (pin "2" (uuid 8e9ace53-b013-470a-8c0f-e691543d3690))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "J10") (unit 1)
         )
@@ -1612,7 +1163,7 @@
     (pin "2" (uuid c864acd1-cfdd-4e52-b301-fd76211d49df))
     (pin "1" (uuid 885b82f3-a610-4571-8914-0711c1702c74))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C3") (unit 1)
         )
@@ -1637,34 +1188,9 @@
     )
     (pin "1" (uuid 67e01d93-1919-43a9-951a-a483c31f2022))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR09") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "power:GND") (at 193.802 107.696 180) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 21b1c30e-b85d-4d15-8a41-613f1f42331b)
-    (property "Reference" "#PWR032" (at 193.802 101.346 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "GND" (at 193.802 102.362 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "" (at 193.802 107.696 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 193.802 107.696 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid d8111ccb-d780-4134-88d3-00ea21b4995c))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "#PWR032") (unit 1)
         )
       )
     )
@@ -1688,7 +1214,7 @@
     (pin "1" (uuid f3fbeec1-9322-4936-89eb-b034d3c23446))
     (pin "2" (uuid eef0ed36-3cea-4f7b-b5cf-a7528135032e))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "D6") (unit 1)
         )
@@ -1713,7 +1239,7 @@
     )
     (pin "1" (uuid 41e9d237-aa31-46ff-819c-8620d88d8576))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR035") (unit 1)
         )
@@ -1738,7 +1264,7 @@
     )
     (pin "1" (uuid 96fff636-a4d9-4c5f-8889-5efb0e1cff11))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR08") (unit 1)
         )
@@ -1763,7 +1289,7 @@
     )
     (pin "1" (uuid 61b13c21-8788-4893-b1d7-15a43df28a77))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR068") (unit 1)
         )
@@ -1789,7 +1315,7 @@
     (pin "1" (uuid d4bffcbf-87f5-4c48-ac2f-011dfd139e17))
     (pin "2" (uuid 6f93319a-8981-430a-b8f0-f8b75cece8ea))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "D2") (unit 1)
         )
@@ -1814,34 +1340,9 @@
     )
     (pin "1" (uuid 14c4d915-5e73-413f-999e-e86619e0260f))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR065") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_name "+5V_1") (lib_id "power:+5V") (at 251.206 61.976 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 3fe6e831-2b46-4664-aec3-152135f15cd8)
-    (property "Reference" "#PWR071" (at 255.016 61.976 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "+5V" (at 247.65 61.976 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "" (at 251.206 61.976 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 251.206 61.976 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 354cc2ef-ffd7-48bd-afaa-c29f98c2b7ac))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "#PWR071") (unit 1)
         )
       )
     )
@@ -1864,7 +1365,7 @@
     )
     (pin "1" (uuid 2e80aeb3-1f95-40e9-b437-ea1d82e4ec6f))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR058") (unit 1)
         )
@@ -1917,7 +1418,7 @@
     (pin "4" (uuid b6f9fcff-0402-4443-bb0f-597c3b04af64))
     (pin "3" (uuid 8b0db804-a290-4f65-bcc9-f77e67c44004))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "U5") (unit 1)
         )
@@ -1942,7 +1443,7 @@
     )
     (pin "1" (uuid 22b88022-10e3-4c53-86c1-53a4ec2f35e3))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR013") (unit 1)
         )
@@ -1968,7 +1469,7 @@
     (pin "1" (uuid 29ec501d-8819-4557-9937-3f21171e42f2))
     (pin "2" (uuid 4cb5b83d-91ac-4862-9e54-39d8f48e5e7b))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "J8") (unit 1)
         )
@@ -1994,62 +1495,9 @@
     (pin "2" (uuid f3d4d622-b6fd-4a09-aa5e-c104a724b733))
     (pin "1" (uuid 5b77f83e-f50f-4efb-a325-332de4c99192))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C22") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:R") (at 174.752 127.254 90) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 578e21c2-5ff0-43ad-8176-73fcefa0e778)
-    (property "Reference" "R12" (at 174.752 121.92 90)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "0" (at 174.752 124.46 90)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "Resistor_SMD:R_0603_1608Metric_Pad0.98x0.95mm_HandSolder" (at 174.752 129.032 90)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 174.752 127.254 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "2" (uuid 4ca6276d-a224-40c4-a9b7-60a08d254cf5))
-    (pin "1" (uuid a6cd209d-52d0-4dd1-9712-80ede43861b7))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "R12") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Connector_Generic:Conn_01x03") (at 256.286 59.436 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 58f423a5-ec13-4d8e-8d02-b383f2e8d2ca)
-    (property "Reference" "J15" (at 258.826 58.166 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "LED_Board_Header" (at 258.826 60.706 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" (at 256.286 59.436 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 256.286 59.436 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 2f720453-d735-401f-9f89-72d7c96d7c6a))
-    (pin "3" (uuid 34788e0a-4069-411f-9925-89cde02918f8))
-    (pin "2" (uuid 130698ff-d84f-4b82-8688-8322d2b5543e))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "J15") (unit 1)
         )
       )
     )
@@ -2073,7 +1521,7 @@
     (pin "2" (uuid 7e762697-fb33-4986-8e76-dbdcc444015b))
     (pin "1" (uuid 75d078ab-7cd4-46d7-ac91-fa7331a525f5))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "R11") (unit 1)
         )
@@ -2099,35 +1547,9 @@
     (pin "2" (uuid 8be91fe0-fc77-421b-b97c-c31d458547bd))
     (pin "1" (uuid 5e747c4d-c0bd-4ebb-883c-eaf4027ed923))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C31") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:LED") (at 218.948 123.19 180) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid 67787057-422f-4855-b64e-2122736c8e29)
-    (property "Reference" "D1" (at 218.948 119.38 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "3W LED" (at 219.964 126.238 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "LEDS - BEAD 3W LED:BEAD-3W-W-120-04" (at 218.948 123.19 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 218.948 123.19 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 7a3340f0-b3e5-4ea4-80da-639ae62cb6eb))
-    (pin "2" (uuid aa6580aa-0dac-4c3b-97f3-e544d55dca30))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "D1") (unit 1)
         )
       )
     )
@@ -2151,34 +1573,9 @@
     (pin "2" (uuid 8ae6f8c4-a0b7-489e-958d-774bcce4cb54))
     (pin "1" (uuid a19880b1-d7cf-4f66-8fc4-b9c9ebd17da4))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C25") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "power:GND") (at 251.206 59.436 270) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 6a36fb90-1bf0-405a-8a9b-1a336acf18c8)
-    (property "Reference" "#PWR072" (at 244.856 59.436 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "GND" (at 247.904 59.436 90)
-      (effects (font (size 1.27 1.27)) (justify right))
-    )
-    (property "Footprint" "" (at 251.206 59.436 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 251.206 59.436 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 424a1d70-025d-4a1f-8e32-16ae7d3ed25c))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "#PWR072") (unit 1)
         )
       )
     )
@@ -2202,35 +1599,9 @@
     (pin "2" (uuid 60c35abc-f70a-4ccd-b259-db3962e41724))
     (pin "1" (uuid 8ec36307-809a-49c7-9df6-eb3b8df42b7d))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C2") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Connector:Conn_01x02_Pin") (at 251.46 110.49 270) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid 6e3d948f-1535-4854-9a05-da008ef48924)
-    (property "Reference" "J13" (at 253.492 109.855 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "Conn_01x02_Pin" (at 253.492 112.395 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" (at 251.46 110.49 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 251.46 110.49 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid fb40e556-402b-4e79-a3ff-89329678920a))
-    (pin "2" (uuid e2bcf8bc-42aa-4b51-be69-9fca4fc387c1))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "J13") (unit 1)
         )
       )
     )
@@ -2253,7 +1624,7 @@
     )
     (pin "1" (uuid b5a5e23d-10f0-4dde-880d-152d33866b98))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR015") (unit 1)
         )
@@ -2279,7 +1650,7 @@
     (pin "1" (uuid fd3e3e97-0c85-49c3-87ca-9fd3a9b798b4))
     (pin "2" (uuid 775cc2a9-3cbb-46cc-9267-d23822fe05f7))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "L4") (unit 1)
         )
@@ -2305,7 +1676,7 @@
     (pin "2" (uuid 97828898-1489-44b5-9867-cee2e12d9798))
     (pin "1" (uuid f5734eef-3b70-4251-ad04-d461aad09c6b))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "R6") (unit 1)
         )
@@ -2330,7 +1701,7 @@
     )
     (pin "1" (uuid afdb846a-97e2-4af6-9136-156d5f678c0c))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR012") (unit 1)
         )
@@ -2357,7 +1728,7 @@
     (pin "3" (uuid 0fb97a48-cc89-4293-bbd1-b4c8b1af6785))
     (pin "1" (uuid edb763a9-481d-4382-a6cf-4891600d99d2))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "J6") (unit 1)
         )
@@ -2383,7 +1754,7 @@
     (pin "2" (uuid d114e336-cd4d-46ba-a5b0-3bc7e3b2b1d7))
     (pin "1" (uuid 5775fcd9-f842-4a18-865d-c38be5f125a4))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C18") (unit 1)
         )
@@ -2436,7 +1807,7 @@
     (pin "4" (uuid 29c1d27c-5fc7-495a-82b1-89362a85fb08))
     (pin "3" (uuid 4a921c16-8e6a-4244-9282-456255e6d868))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "U6") (unit 1)
         )
@@ -2461,7 +1832,7 @@
     )
     (pin "1" (uuid b8132f3a-8a40-4523-b357-f7c125074776))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR033") (unit 1)
         )
@@ -2486,7 +1857,7 @@
     )
     (pin "1" (uuid 2ce233c6-0c95-4723-b225-78634ff0a514))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR036") (unit 1)
         )
@@ -2511,7 +1882,7 @@
     )
     (pin "1" (uuid 73d645dc-6fd7-4e34-ab03-994106e3f78d))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR026") (unit 1)
         )
@@ -2537,7 +1908,7 @@
     (pin "1" (uuid cf09efd0-86b3-4368-92c3-aa8252d8a7b7))
     (pin "2" (uuid d34638e1-98b4-4f0f-99b4-fba3c1b53a9d))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "J5") (unit 1)
         )
@@ -2562,7 +1933,7 @@
     )
     (pin "1" (uuid a0d0f508-a840-43f0-a833-784c7eb9e9be))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR010") (unit 1)
         )
@@ -2588,61 +1959,9 @@
     (pin "2" (uuid d0731f4a-5005-4f1d-b602-68b81c4482fd))
     (pin "1" (uuid 145c1912-0cd7-44fd-a668-586564d5da81))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C24") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:LED") (at 250.444 144.018 180) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid a5e6fa9a-6a4b-4940-ab1a-54aad45efa5e)
-    (property "Reference" "D7" (at 250.444 140.208 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "3W LED" (at 251.46 147.066 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "LEDS - BEAD 3W LED:BEAD-3W-W-120-04" (at 250.444 144.018 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 250.444 144.018 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 48fdcba8-d951-41b3-8c80-1263060aaeb8))
-    (pin "2" (uuid f3955ec9-b936-4186-b816-35d4ffeb240b))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "D7") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:LED") (at 219.456 143.764 180) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid a602b5be-891d-42f3-b7cc-8b4bf380941e)
-    (property "Reference" "D3" (at 219.456 139.954 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "3W LED" (at 220.472 146.812 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "LEDS - BEAD 3W LED:BEAD-3W-W-120-04" (at 219.456 143.764 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 219.456 143.764 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid c058487b-b625-43c8-9ff9-0ee13d5b368d))
-    (pin "2" (uuid e67d5818-767c-4569-a551-5d86c9216266))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "D3") (unit 1)
         )
       )
     )
@@ -2666,7 +1985,7 @@
     (pin "2" (uuid dae96502-5b13-42e2-8e92-5efc92bbde86))
     (pin "1" (uuid 392a8f0f-06c0-4609-8cfd-e6fcd1959c7e))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C30") (unit 1)
         )
@@ -2692,7 +2011,7 @@
     (pin "2" (uuid 45e81a75-0bf1-4448-aaab-3d4d1380d4e3))
     (pin "1" (uuid 7686703c-e889-4c24-8b1c-d5a06d3ae1fa))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "R5") (unit 1)
         )
@@ -2718,62 +2037,9 @@
     (pin "1" (uuid f7d57237-b664-483c-b6f8-6ed398e2e6fb))
     (pin "2" (uuid b1edf90b-54bc-4101-beb9-d48ef6fdab06))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "L3") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "LED:WS2812B") (at 193.802 127.254 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid adf4a7c3-b276-4d71-b203-8ce6ebbc211b)
-    (property "Reference" "D9" (at 200.66 131.826 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Value" "WS2812B" (at 200.66 134.366 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "LED_SMD:LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm" (at 195.072 134.874 0)
-      (effects (font (size 1.27 1.27)) (justify left top) hide)
-    )
-    (property "Datasheet" "https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf" (at 196.342 136.779 0)
-      (effects (font (size 1.27 1.27)) (justify left top) hide)
-    )
-    (pin "1" (uuid 05b8a7cb-0ea4-445e-bd87-41fb9d057ec7))
-    (pin "2" (uuid 5c952697-e7c5-4559-b609-2e37c8cdeb4a))
-    (pin "4" (uuid 56a8894a-d214-47df-9897-b0b278865488))
-    (pin "3" (uuid 504f11fa-048e-4ae1-999b-268bb6d6b0c7))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "D9") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "power:GND") (at 193.802 145.796 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid aed0a0fb-3d33-4d83-8899-d1e1a06ab7bf)
-    (property "Reference" "#PWR016" (at 193.802 152.146 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "GND" (at 193.802 150.114 90)
-      (effects (font (size 1.27 1.27)) (justify right))
-    )
-    (property "Footprint" "" (at 193.802 145.796 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "" (at 193.802 145.796 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 27c1b132-5b8d-4824-bc04-0d79c6046504))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "#PWR016") (unit 1)
         )
       )
     )
@@ -2796,7 +2062,7 @@
     )
     (pin "1" (uuid 5fc3063d-2b76-402c-ba24-b8661e297e5f))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR011") (unit 1)
         )
@@ -2849,34 +2115,9 @@
     (pin "4" (uuid 1c97efd7-065b-4adf-a667-1353a4e11e2b))
     (pin "3" (uuid 60c7c95f-26e6-453e-864e-a8cec83475f9))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "U7") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "power:+5V") (at 182.88 107.442 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no)
-    (uuid bf227ddb-a953-4e2d-9a63-4558e14d1dc4)
-    (property "Reference" "#PWR020" (at 182.88 111.252 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Value" "+5V" (at 181.61 103.886 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Footprint" "" (at 182.88 107.442 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (property "Datasheet" "" (at 182.88 107.442 0)
-      (effects (font (size 1.27 1.27)))
-    )
-    (pin "1" (uuid 8cd8f97b-7412-4e1b-8662-eb10635a49b5))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "#PWR020") (unit 1)
         )
       )
     )
@@ -2900,7 +2141,7 @@
     (pin "1" (uuid 32681b7b-ac93-40f2-9932-3695b9c963ca))
     (pin "2" (uuid 389cb62b-b717-4114-83fb-8d25deb9dbcf))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "D8") (unit 1)
         )
@@ -2925,7 +2166,7 @@
     )
     (pin "1" (uuid b1010753-0359-4d2f-8a22-38a816b5e4f3))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR069") (unit 1)
         )
@@ -2951,7 +2192,7 @@
     (pin "2" (uuid 48ed49ce-87a6-4499-84aa-9b92e65eb2b5))
     (pin "1" (uuid 5bec45ed-bb9e-4b03-909a-1976be1ed2a2))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "R4") (unit 1)
         )
@@ -2977,35 +2218,9 @@
     (pin "1" (uuid b5a6d54a-3870-4d9b-891b-7b226cc49dd4))
     (pin "2" (uuid 35ea5bca-9b79-4b04-842e-6a1d66fb0626))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "L1") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Device:C") (at 193.802 111.506 0) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid d4471224-9139-41ba-ae23-05c643d2de09)
-    (property "Reference" "C12" (at 196.85 110.236 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "0.1uF" (at 196.85 112.776 0)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Capacitor_SMD:C_0603_1608Metric_Pad1.08x0.95mm_HandSolder" (at 194.7672 115.316 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 193.802 111.506 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "2" (uuid e6660f52-c636-451b-95f0-0105deae5299))
-    (pin "1" (uuid b169dc60-f378-40d3-963d-b9ce18794513))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "C12") (unit 1)
         )
       )
     )
@@ -3029,7 +2244,7 @@
     (pin "2" (uuid 3d1d425c-5a1e-4cf3-9e6f-c57571d3b0f6))
     (pin "1" (uuid 4e63a093-0281-4048-9178-c519c99b4df8))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "R3") (unit 1)
         )
@@ -3082,7 +2297,7 @@
     (pin "4" (uuid cd3e8907-992a-414a-9c8a-c82078b97e57))
     (pin "3" (uuid 2fc13b70-801c-4361-91ba-44a92c955448))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "U8") (unit 1)
         )
@@ -3108,7 +2323,7 @@
     (pin "1" (uuid d5d94a97-9117-4cbe-9172-f7d54fb4c1e8))
     (pin "2" (uuid d3cd07ba-8175-4d43-ad2b-b501a3daf3ca))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "D4") (unit 1)
         )
@@ -3133,7 +2348,7 @@
     )
     (pin "1" (uuid e7b464f4-06d2-4b44-bacf-92e754a644a3))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "#PWR034") (unit 1)
         )
@@ -3159,35 +2374,9 @@
     (pin "1" (uuid 377b2f71-380e-42bc-b0aa-baf7092897ad))
     (pin "2" (uuid fe6eb81f-ef94-4f7a-9c05-6e241a38c0f3))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "J9") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Connector:Conn_01x02_Pin") (at 220.472 110.236 270) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid e9a24dc2-80dc-466f-954f-4012f9e00955)
-    (property "Reference" "J11" (at 222.504 109.601 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "Conn_01x02_Pin" (at 222.504 112.141 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" (at 220.472 110.236 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 220.472 110.236 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 314a2983-4695-495a-9a7a-1505b08ae538))
-    (pin "2" (uuid cf91bfe7-31cc-4c6c-bd5c-57110566d87d))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "J11") (unit 1)
         )
       )
     )
@@ -3211,61 +2400,9 @@
     (pin "2" (uuid 2501af28-b9d6-4e97-bdab-4c30e4f41379))
     (pin "1" (uuid 9c77c3b4-a3b8-4c3a-a26e-f1dbc166ac45))
     (instances
-      (project "OAC"
+      (project "LED_Driver"
         (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
           (reference "C23") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Connector:Conn_01x02_Pin") (at 251.968 131.064 270) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid eed0381f-cb01-4b4a-8798-69a92ccf7b83)
-    (property "Reference" "J14" (at 254 130.429 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "Conn_01x02_Pin" (at 254 132.969 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" (at 251.968 131.064 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 251.968 131.064 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid 3242ef86-9133-483a-bf73-9ba774b115c9))
-    (pin "2" (uuid 6ada31f3-ed26-417b-a1b9-42e0b4d1653f))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "J14") (unit 1)
-        )
-      )
-    )
-  )
-
-  (symbol (lib_id "Connector:Conn_01x02_Pin") (at 220.98 130.81 270) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (fields_autoplaced)
-    (uuid f3dfeecf-9ab3-4b28-ad4a-cf359819c49a)
-    (property "Reference" "J12" (at 223.012 130.175 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Value" "Conn_01x02_Pin" (at 223.012 132.715 90)
-      (effects (font (size 1.27 1.27)) (justify left))
-    )
-    (property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" (at 220.98 130.81 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (property "Datasheet" "~" (at 220.98 130.81 0)
-      (effects (font (size 1.27 1.27)) hide)
-    )
-    (pin "1" (uuid ede25663-9e0b-4ba8-b753-880b00dcc978))
-    (pin "2" (uuid 32e4bd83-b411-4334-9347-0251730a37fb))
-    (instances
-      (project "OAC"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55/22fcd688-33b8-49bf-bbf7-32dc41075404"
-          (reference "J12") (unit 1)
         )
       )
     )

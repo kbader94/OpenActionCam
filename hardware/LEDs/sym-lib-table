@@ -1,7 +1,0 @@
-(sym_lib_table
-  (version 7)
-  (lib (name "254")(type "KiCad")(uri "${KIPRJMOD}/Assets/254/254.kicad_sym")(options "")(descr ""))
-  (lib (name "MM3220AA2NRH")(type "KiCad")(uri "${KIPRJMOD}/Assets/MM3220AA2NRH/MM3220AA2NRH.kicad_sym")(options "")(descr ""))
-  (lib (name "SI2301")(type "KiCad")(uri "${KIPRJMOD}/Assets/SI2301_TP/KiCADv6/2025-04-04_03-01-50.kicad_sym")(options "")(descr ""))
-  (lib (name "AO3400A")(type "KiCad")(uri "${KIPRJMOD}/Assets/AO3400A/KiCADv6/2025-04-04_03-31-37.kicad_sym")(options "")(descr ""))
-)
