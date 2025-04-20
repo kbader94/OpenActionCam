@@ -49,7 +49,7 @@
         "silk_text_upright": false,
         "zones": {
           "45_degree_only": true,
-          "min_clearance": 0.3
+          "min_clearance": 0.25
         }
       },
       "diff_pair_dimensions": [
@@ -59,7 +59,20 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        [
+          "footprint_type_mismatch|115630000|150690000|d568d687-e5ec-48f3-9ac5-b815d4de4b64|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "lib_footprint_mismatch|155765682|172889257|650527e8-1f38-4a20-ad2f-48cf17767e6f|00000000-0000-0000-0000-000000000000",
+          ""
+        ],
+        [
+          "unconnected_items|160300682|184144257|64fd86ad-b68c-4b5b-aacc-e86a3c8f7661|3e84e952-65a9-49aa-8ebd-71e769e11c1a",
+          "connected on rpi board"
+        ]
+      ],
       "meta": {
         "version": 2
       },
@@ -546,7 +559,7 @@
       "gencad": "",
       "idf": "",
       "netlist": "",
-      "plot": "",
+      "plot": "Fab/",
       "pos_files": "",
       "specctra_dsn": "",
       "step": "",

@@ -57,7 +57,7 @@ extern "C" {
 #define COMMAND_RECORD_ENDED      0xE001
 #define COMMAND_SHUTDOWN_REQ      0xD000
 #define COMMAND_SHUTDOWN_STARTED  0xD001
-#define COMMAND_BOOT              0xC000
+#define COMMAND_HB              0xC000
 
 /* Message Recipient Definitions */
 #define MESSAGE_RECIPIENT_LINUX 0x01

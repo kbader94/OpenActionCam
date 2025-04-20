@@ -28,6 +28,7 @@ typedef struct {
 /* === Error Definitions === */
 #define ERR_LOW_BATTERY               ((error_def_t){  2, "Low Battery",                            ORIGIN_MCU })  
 #define ERR_INSUFFICIENT_SPACE        ((error_def_t){  3, "Insufficient storage space!",            ORIGIN_LINUX })
+#define ERR_CHARGER_FAULT             ((error_def_t){  4, "Charger error",                          ORIGIN_MCU })  
 #define ERR_BATTERY_OV                ((error_def_t){  6, "Battery over-voltage detected",          ORIGIN_MCU })  
 #define ERR_NO_COMM_RPI               ((error_def_t){  7, "No contact with RPI!",                   ORIGIN_MCU })
 #define ERR_RPI_SHUTDOWN_REQ_TIMEOUT  ((error_def_t){  8, "RPI did not acknowledge shutdown!",      ORIGIN_MCU })

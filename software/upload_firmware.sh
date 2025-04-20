@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # === CONFIGURATION ===
-HEX_FILE="software/firmware/build/firmware.ino.hex"  # Path to compiled Arduino firmware
+HEX_FILE="firmware/build/firmware.ino.hex"  # Path to compiled Arduino firmware
 PROGRAMMER="arduino"  # Programmer type (Arduino as ISP)
-MCU="atmega328p"
+MCU="atmega328pb"
 
 # Check if SERIAL_PORT was provided as an argument
 if [[ -z "$1" ]]; then

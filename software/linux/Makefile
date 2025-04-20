@@ -4,11 +4,11 @@ ARCH ?= x86_64  # Default to compiling for the local system
 ifeq ($(ARCH), arm64)
     CC = aarch64-linux-gnu-gcc
     CXX = aarch64-linux-gnu-g++
-    TARGET_NAME = linux_camera
+    TARGET_NAME = open_action_camera
 else
     CC = gcc
     CXX = g++
-    TARGET_NAME = linux_camera
+    TARGET_NAME = open_action_camera
 endif
 
 # === Debug/Release Flags ===

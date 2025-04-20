@@ -6135,7 +6135,7 @@
 				)
 			)
 		)
-		(property "Footprint" "CAT24C256WI-GT3:SOIC127P600X175-8N"
+		(property "Footprint" "IC - CAT24C256WI-GT3:SOIC127P600X175-8N"
 			(at 81.28 177.8 0)
 			(effects
 				(font

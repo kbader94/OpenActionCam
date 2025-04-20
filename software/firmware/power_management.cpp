@@ -6,7 +6,7 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
     void PowerManagement::transitionTo(DeviceState new_state) {
         switch (new_state) {
              case LOW_POWER_STATE:
-                 Serial.begin(9600); // TODO: remove for true low power
+                 Serial.begin(9600); // TODO: remove for true low power, this is kept for dev purposes(mayhaps we need a #define)
                  reset_error();
                  led->clearAnimation();
                  led->setVal(0);
@@ -56,6 +56,9 @@ PowerManagement::PowerManagement(Led* led_ref, uint8_t pinToMosfet)
                  shutdown_req_ack_rec_time = millis();
                  DEBUG_MESSAGE("[PM] Disabling Serial to listen for UART idle.");
                  Serial.end();
+                 /* TODO: huh? we aren't currently waiting for shutdown(detect via tx lvl) 
+                  * We should call waitForShutdown() here
+                  */
                  pinMode(PIN_RX, INPUT_PULLUP);
                  state = SHUTDOWN_STATE;
                  break;

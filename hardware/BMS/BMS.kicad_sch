@@ -1,39 +1,63 @@
-(kicad_sch (version 20230121) (generator eeschema)
-
-  (uuid e63e39d7-6ac0-4ffd-8aa3-1841a4541b55)
-
-  (paper "A4")
-
-  (title_block
-    (title "OpenActionCam")
-    (date "2025-04-10")
-    (rev "0.2")
-    (company "KBader94")
-    (comment 1 "https://github.com/kbader94/OpenActionCam")
-  )
-
-  (lib_symbols
-  )
-
-
-  (sheet (at 222.25 100.838) (size 40.386 9.906) (fields_autoplaced)
-    (stroke (width 0.1524) (type solid))
-    (fill (color 0 0 0 0.0000))
-    (uuid 800e290e-8cfb-4946-9373-3e863e65a993)
-    (property "Sheetname" "Power BMS" (at 222.25 100.1264 0)
-      (effects (font (size 1.27 1.27)) (justify left bottom))
-    )
-    (property "Sheetfile" "Power Boost.kicad_sch" (at 222.25 111.3286 0)
-      (effects (font (size 1.27 1.27)) (justify left top))
-    )
-    (instances
-      (project "BMS"
-        (path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55" (page "7"))
-      )
-    )
-  )
-
-  (sheet_instances
-    (path "/" (page "1"))
-  )
+(kicad_sch
+	(version 20250114)
+	(generator "eeschema")
+	(generator_version "9.0")
+	(uuid "e63e39d7-6ac0-4ffd-8aa3-1841a4541b55")
+	(paper "A4")
+	(title_block
+		(title "OpenActionCam")
+		(date "2025-04-10")
+		(rev "0.2")
+		(company "KBader94")
+		(comment 1 "https://github.com/kbader94/OpenActionCam")
+	)
+	(lib_symbols)
+	(sheet
+		(at 222.25 100.838)
+		(size 40.386 9.906)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "800e290e-8cfb-4946-9373-3e863e65a993")
+		(property "Sheetname" "Power BMS"
+			(at 222.25 100.1264 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "Power Boost.kicad_sch"
+			(at 222.25 111.3286 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "BMS"
+				(path "/e63e39d7-6ac0-4ffd-8aa3-1841a4541b55"
+					(page "7")
+				)
+			)
+		)
+	)
+	(sheet_instances
+		(path "/"
+			(page "1")
+		)
+	)
+	(embedded_fonts no)
 )

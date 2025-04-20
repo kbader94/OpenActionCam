@@ -1,0 +1,10 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "AOSP36326C")(type "KiCad")(uri "${KIPRJMOD}/Assets/MOSFETs/AOSP36326C")(options "")(descr ""))
+  (lib (name "ECS-160-20-33-TR")(type "KiCad")(uri "${KIPRJMOD}/Assets/Crystal/ECS-160-20-33-TR")(options "")(descr ""))
+  (lib (name "Board")(type "KiCad")(uri "${KIPRJMOD}/Assets/Board.pretty")(options "")(descr ""))
+  (lib (name "RASPBERRY_PI_ZERO_2_W")(type "KiCad")(uri "${KIPRJMOD}/Assets/RASPBERRY_PI_ZERO_2_W")(options "")(descr ""))
+  (lib (name "Button - PTS815")(type "KiCad")(uri "${KIPRJMOD}/Assets/Button/PTS815_SJM_250_SMTR_LFS/KiCADv6/footprints.pretty")(options "")(descr ""))
+  (lib (name "IC - CAT24C256WI-GT3")(type "KiCad")(uri "${KIPRJMOD}/Assets/ICs/CAT24C256WI-GT3")(options "")(descr ""))
+  (lib (name "CAT24C256WI-GT3")(type "KiCad")(uri "${KIPRJMOD}/Assets/ICs/CAT24C256WI-GT3")(options "")(descr ""))
+)

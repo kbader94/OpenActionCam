@@ -50,9 +50,6 @@ int main(void)
     /* Initialize communication */
     comms_init();
 
-    /* Send BOOT command to indicate system is fully running */
-    comms_send_command(COMMAND_BOOT);
-
     /* Process serial messages */
     while (1)
     {
@@ -109,7 +106,10 @@ int main(void)
             }
         }
 
-        usleep(500); /* 500ms poll interval */
+        /* Send heartbeat command to indicate system is fully running */
+        comms_send_command(COMMAND_HB);
+
+        usleep(50); /* 50ms poll interval */
     }
 
     return 0;

@@ -1,0 +1,22 @@
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2835";
+
+	fragment@0 {
+		target = <&uart0>;  // or &uart1 if using ttyS0(miniUART)
+
+		__overlay__ {
+			status = "okay";
+
+			oac {
+				compatible = "oac,dev";
+				oac_watchdog {
+					compatible = "oac,watchdog";
+				};
+			};
+		};
+	};
+    
+};

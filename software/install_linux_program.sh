@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # === CONFIGURATION ===
-BUILD_DIR="software/linux/build"
-PROGRAM_NAME="linux_camera"
-REMOTE_PATH="/home/$2/bin"  # Uses provided username for home directory
+BUILD_DIR="linux/build"
+PROGRAM_NAME="open_action_camera"
+REMOTE_BIN_PATH="/home/$2/bin"
+SERVICE_NAME="oac_service"
+SERVICE_FILE="/etc/systemd/system/${SERVICE_NAME}.service"
 
 # === Check if sshpass is installed, install if missing ===
 if ! command -v sshpass &> /dev/null; then
@@ -40,18 +42,41 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # === Ensure Remote Directory Exists ===
-echo "Ensuring remote directory exists: $REMOTE_PATH ..."
-sshpass -p "$REMOTE_PASS" ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "mkdir -p \"$REMOTE_PATH\""
+echo "Ensuring remote directory exists: $REMOTE_BIN_PATH ..."
+sshpass -p "$REMOTE_PASS" ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "mkdir -p \"$REMOTE_BIN_PATH\""
 
 # === Transfer Compiled Program ===
-echo "Transferring '$PROGRAM_NAME' to $REMOTE_USER@$REMOTE_IP:$REMOTE_PATH ..."
-sshpass -p "$REMOTE_PASS" scp -o StrictHostKeyChecking=no "$BUILD_DIR/$PROGRAM_NAME" "$REMOTE_USER@$REMOTE_IP:$REMOTE_PATH"
+echo "Transferring '$PROGRAM_NAME' to $REMOTE_USER@$REMOTE_IP:$REMOTE_BIN_PATH ..."
+sshpass -p "$REMOTE_PASS" scp -o StrictHostKeyChecking=no "$BUILD_DIR/$PROGRAM_NAME" "$REMOTE_USER@$REMOTE_IP:$REMOTE_BIN_PATH"
 
 if [[ $? -ne 0 ]]; then
     echo "Error: File transfer failed."
     exit 1
 fi
 
-echo "Installation complete. The program is now on $REMOTE_IP at $REMOTE_PATH/$PROGRAM_NAME."
-exit 0
+# === Create Systemd Service File Content ===
+SERVICE_UNIT="[Unit]
+Description=Linux Camera Service
+After=network.target
 
+[Service]
+Type=simple
+User=$REMOTE_USER
+ExecStart=$REMOTE_BIN_PATH/$PROGRAM_NAME
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+"
+
+# === Install Service File Remotely ===
+echo "Installing systemd service '$SERVICE_NAME.service' ..."
+sshpass -p "$REMOTE_PASS" ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "echo \"$SERVICE_UNIT\" | sudo tee $SERVICE_FILE > /dev/null"
+
+# === Reload systemd and enable service ===
+sshpass -p "$REMOTE_PASS" ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "sudo systemctl daemon-reexec && sudo systemctl daemon-reload"
+sshpass -p "$REMOTE_PASS" ssh -o StrictHostKeyChecking=no "$REMOTE_USER@$REMOTE_IP" "sudo systemctl enable --now $SERVICE_NAME.service"
+
+echo "✅ Installation and systemd setup complete."
+echo "➡️  Service is now running as '$SERVICE_NAME.service' on $REMOTE_IP."
+exit 0

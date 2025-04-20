@@ -3,9 +3,9 @@
 # === CONFIGURATION ===
 BOARD="arduino:avr:uno"  # Change to match your board
 PLATFORM="arduino:avr"   # Required platform
-SKETCH="software/firmware"        # Path to Arduino sketch FOLDER (not .ino file)
+SKETCH="firmware"        # Path to Arduino sketch FOLDER (not .ino file)
 OUTPUT_DIR="build"
-ARDUINO_BUILD_DIR="software/firmware/$OUTPUT_DIR"
+ARDUINO_BUILD_DIR="firmware/$OUTPUT_DIR"
 REQUIRED_LIBS=("Adafruit NeoPixel") # List of required libraries
 
 echo "=================================="

@@ -6,7 +6,10 @@ software/firmware/build/
 hardware/OAC-backups/
 
 # Ignore VSCode settings
-.vscode/
+software/.vscode/
+
+# Ignore rpi linux kernel source
+software/rpi-linux/
 
 # Ignore common temporary files
 *.log
@@ -23,8 +26,16 @@ hardware/OAC-backups/
 *.o
 *.obj
 *.so
-*.dll
-*.exe
+*.ko
+*.dtbo
+.*.mod
+.*.cmd 
+*.mod.c
+*.mod.o
+*.symvers
+*.order
+*.dtbo
+*.dtb
 
 # Ignore core dumps
 core
