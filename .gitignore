@@ -7,6 +7,7 @@ hardware/OAC-backups/
 
 # Ignore VSCode settings
 software/.vscode/
+software/compile_commands.json
 
 # Ignore rpi linux kernel source
 software/rpi-linux/
@@ -40,3 +41,4 @@ software/rpi-linux/
 # Ignore core dumps
 core
 core.*
+

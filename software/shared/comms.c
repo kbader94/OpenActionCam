@@ -291,46 +291,69 @@ static int comms_send_message(const struct Message *msg)
   * @return < 0 on error, length of serialized message on success
   */
  static int comms_serialize_message(const struct Message *msg, uint8_t *out_buf)
- {
-     if (!msg || !out_buf)
-         return -1;
- 
-     out_buf[0] = MESSAGE_START;
-     out_buf[1] = msg->header.recipient;
-     out_buf[2] = msg->header.message_type;
-     out_buf[3] = msg->header.payload_length;
- 
-     switch (msg->header.message_type) {
-     case MESSAGE_TYPE_COMMAND:
-         out_buf[4] = msg->body.payload_command.command & 0xFF;
-         out_buf[5] = (msg->body.payload_command.command >> 8) & 0xFF;
-         break;
- 
-     case MESSAGE_TYPE_STATUS:
-         if (msg->header.payload_length < sizeof(struct StatusBody))
-             return -2;
-         memcpy(&out_buf[4], &msg->body.payload_status, sizeof(struct StatusBody));
-         break;
- 
-     case MESSAGE_TYPE_ERROR:
-         out_buf[4] = msg->body.payload_error.error_code;
-         strncpy((char *)&out_buf[5], msg->body.payload_error.error_message, msg->header.payload_length - 1);
-         break;
- 
-     case MESSAGE_TYPE_DATA:
-         memcpy(&out_buf[4], msg->body.payload_raw, msg->header.payload_length);
-         break;
- 
-     default:
-         return -3;
-     }
- 
-     uint8_t checksum = comms_calculate_checksum(&out_buf[4], msg->header.payload_length);
-     out_buf[4 + msg->header.payload_length] = checksum;
-     out_buf[5 + msg->header.payload_length] = MESSAGE_END;
- 
-     return 6 + msg->header.payload_length; // total length
- }
+{
+    if (!msg || !out_buf)
+        return -1;
+
+    const uint8_t *payload = NULL;
+    size_t payload_len = msg->header.payload_length;
+
+    // Start of frame
+    out_buf[0] = MESSAGE_START;
+
+    // Header fields
+    out_buf[1] = msg->header.recipient;
+    out_buf[2] = msg->header.message_type;
+    out_buf[3] = msg->header.payload_length;
+
+    // Write payload to out_buf[5]
+    switch (msg->header.message_type) {
+    case MESSAGE_TYPE_COMMAND:
+        out_buf[5] = msg->body.payload_command.command & 0xFF;
+        out_buf[6] = (msg->body.payload_command.command >> 8) & 0xFF;
+        break;
+
+    case MESSAGE_TYPE_STATUS:
+        if (payload_len != sizeof(struct StatusBody)) return -2;
+        memcpy(&out_buf[5], &msg->body.payload_status, payload_len);
+        break;
+
+    case MESSAGE_TYPE_ERROR:
+        out_buf[5] = msg->body.payload_error.error_code;
+        strncpy((char *)&out_buf[6], msg->body.payload_error.error_message, payload_len - 1);
+        break;
+
+    case MESSAGE_TYPE_DATA:
+        memcpy(&out_buf[5], msg->body.payload_raw, payload_len);
+        break;
+
+    case MESSAGE_TYPE_SET:
+        if (payload_len != sizeof(struct SetParamBody)) return -2;
+        out_buf[5] = msg->body.payload_set_param.param & 0xFF;
+        out_buf[6] = (msg->body.payload_set_param.param >> 8) & 0xFF;
+        memcpy(&out_buf[7], &msg->body.payload_set_param.val, sizeof(uint64_t));
+        break;
+
+    case MESSAGE_TYPE_GET:
+        if (payload_len != sizeof(struct GetParamBody)) return -2;
+        out_buf[5] = msg->body.payload_get_param.param & 0xFF;
+        out_buf[6] = (msg->body.payload_get_param.param >> 8) & 0xFF;
+        break;
+
+    default:
+        return -3;
+    }
+
+    // Compute checksum over header + payload (out_buf[1] to [4 + payload_len])
+    uint8_t csum = comms_calculate_checksum(&out_buf[1], 3 + payload_len);
+    out_buf[4] = csum;
+
+    // End of frame
+    out_buf[5 + payload_len] = MESSAGE_END;
+
+    return 6 + payload_len;  // total frame length
+}
+
 
  /* 
   * comms_deserialize_message
@@ -340,47 +363,62 @@ static int comms_send_message(const struct Message *msg)
   * @return < 0 on error, 0 on success
   */
  static int comms_deserialize_message(const uint8_t *in_buf, size_t length, struct Message *msg)
- {
-     if (!in_buf || !msg || length < 6)
-         return -1;
- 
-     if (in_buf[0] != MESSAGE_START || in_buf[length - 1] != MESSAGE_END)
-         return -2;
- 
-     msg->header.recipient = in_buf[1];
-     msg->header.message_type = in_buf[2];
-     msg->header.payload_length = in_buf[3];
- 
-     uint8_t checksum = in_buf[4 + msg->header.payload_length];
-     uint8_t computed = comms_calculate_checksum(&in_buf[4], msg->header.payload_length);
-     if (checksum != computed)
-         return -3;
- 
-     switch (msg->header.message_type) {
-     case MESSAGE_TYPE_COMMAND:
-         msg->body.payload_command.command = in_buf[4] | (in_buf[5] << 8);
-         break;
- 
-     case MESSAGE_TYPE_STATUS:
-         memcpy(&msg->body.payload_status, &in_buf[4], sizeof(struct StatusBody));
-         break;
- 
-     case MESSAGE_TYPE_ERROR:
-         msg->body.payload_error.error_code = in_buf[4];
-         strncpy(msg->body.payload_error.error_message, (char *)&in_buf[5], msg->header.payload_length - 1);
-         msg->body.payload_error.error_message[msg->header.payload_length - 1] = '\0';
-         break;
- 
-     case MESSAGE_TYPE_DATA:
-         memcpy(msg->body.payload_raw, &in_buf[4], msg->header.payload_length);
-         break;
- 
-     default:
-         return -4;
-     }
- 
-     return 0;
- }
+{
+    if (!in_buf || !msg || length < 6)
+        return -1;
+
+    if (in_buf[0] != MESSAGE_START || in_buf[length - 1] != MESSAGE_END)
+        return -2;
+
+    msg->header.recipient = in_buf[1];
+    msg->header.message_type = in_buf[2];
+    msg->header.payload_length = in_buf[3];
+    msg->header.checksum = in_buf[4];
+
+    if (length != 6 + msg->header.payload_length)
+        return -3;
+
+    uint8_t computed = comms_calculate_checksum(&in_buf[1], 3 + msg->header.payload_length);
+    if (msg->header.checksum != computed)
+        return -4;
+
+    const uint8_t *payload = &in_buf[5];
+
+    switch (msg->header.message_type) {
+    case MESSAGE_TYPE_COMMAND:
+        msg->body.payload_command.command = payload[0] | (payload[1] << 8);
+        break;
+
+    case MESSAGE_TYPE_STATUS:
+        memcpy(&msg->body.payload_status, payload, sizeof(struct StatusBody));
+        break;
+
+    case MESSAGE_TYPE_ERROR:
+        msg->body.payload_error.error_code = payload[0];
+        strncpy(msg->body.payload_error.error_message, (char *)&payload[1], msg->header.payload_length - 1);
+        msg->body.payload_error.error_message[msg->header.payload_length - 1] = '\0';
+        break;
+
+    case MESSAGE_TYPE_DATA:
+        memcpy(msg->body.payload_raw, payload, msg->header.payload_length);
+        break;
+
+    case MESSAGE_TYPE_SET:
+        msg->body.payload_set_param.param = payload[0] | (payload[1] << 8);
+        memcpy(&msg->body.payload_set_param.val, &payload[2], sizeof(uint64_t));
+        break;
+
+    case MESSAGE_TYPE_GET:
+        msg->body.payload_get_param.param = payload[0] | (payload[1] << 8);
+        break;
+
+    default:
+        return -5;
+    }
+
+    return 0;
+}
+
  
  /* Internal Linux serial functions */
  #if IS_LINUX

@@ -1,4 +1,4 @@
-KDIR := ../../rpi-linux
+KDIR := /lib/modules/$(shell uname -r)/build
 ARCH := arm64
 CROSS_COMPILE := aarch64-linux-gnu-
 

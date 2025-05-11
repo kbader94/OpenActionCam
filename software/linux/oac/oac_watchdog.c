@@ -13,8 +13,9 @@ struct oac_watchdog {
 
 static int oac_wd_ping(struct watchdog_device *wdd)
 {
+	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
-	return -EINVAL;
+		return -EINVAL;
 
 	struct Message msg = {
 		.header.message_type = OAC_MESSAGE_TYPE_COMMAND,
@@ -25,9 +26,10 @@ static int oac_wd_ping(struct watchdog_device *wdd)
 }
 
 static int oac_wd_start(struct watchdog_device *wdd)
-{
+{	
+	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
-	return -EINVAL;
+		return -EINVAL;
 
 	struct Message msg = {
 		.header.message_type = OAC_MESSAGE_TYPE_COMMAND,
@@ -39,8 +41,9 @@ static int oac_wd_start(struct watchdog_device *wdd)
 
 static int oac_wd_stop(struct watchdog_device *wdd)
 {
+	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
-	return -EINVAL;
+		return -EINVAL;
 
 	struct Message msg = {
 		.header.message_type = OAC_MESSAGE_TYPE_COMMAND,
@@ -52,21 +55,26 @@ static int oac_wd_stop(struct watchdog_device *wdd)
 
 static int oac_wd_set_timeout(struct watchdog_device *wdd, unsigned int timeout)
 {
+	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
-	return -EINVAL;
+		return -ENODEV;
 
 	struct Message msg = {
-		.header.message_type = OAC_MESSAGE_TYPE_SET,
-		.body.payload_set_parameters.param = OAC_COMMAND_WD_SET_TO,
-		.body.payload_set_parameters.value = timeout,
+		.header = {
+			.message_type = OAC_MESSAGE_TYPE_SET,
+			.recipient = OAC_COMMS_RECIPIENT_FIRMWARE,
+			.payload_length = sizeof(struct SetParamBody),
+		},
+		.body.payload_set_param.param = OAC_COMMAND_WD_SET_TO,
+		.body.payload_set_param.val = timeout,
 	};
 
 	return oac_dev_send_message(owd->core, &msg);
 }
 
+
 static const struct watchdog_ops oac_wd_ops = {
 	.owner = THIS_MODULE,
-	.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT, /* allow userspace to set timeout */
 	.ping = oac_wd_ping,
 	.start = oac_wd_start,
 	.stop = oac_wd_stop,
@@ -74,8 +82,9 @@ static const struct watchdog_ops oac_wd_ops = {
 };
 
 static const struct watchdog_info oac_wd_info = {
-	.options = WDIOF_KEEPALIVEPING,
+	.options = WDIOF_KEEPALIVEPING | WDIOF_SETTIMEOUT,
 	.identity = "Open Action Cam Watchdog",
+	.firmware_version = 1,
 };
 
 static int oac_watchdog_probe(struct platform_device *pdev)
@@ -86,15 +95,6 @@ static int oac_watchdog_probe(struct platform_device *pdev)
 
 	dev_info(&pdev->dev, "watchdog probe started\n");
 
-	/* Quick sanity check */
-	if (!core || !core->wd_ops.kick || !core->wd_ops.start || !core->wd_ops.stop) {
-		dev_warn(&pdev->dev, "incomplete wd_ops: kick=%p, start=%p, stop=%p\n",
-			 core ? core->wd_ops.kick : NULL,
-			 core ? core->wd_ops.start : NULL,
-			 core ? core->wd_ops.stop : NULL);
-		return -EINVAL;
-	}	
-
 	owd = devm_kzalloc(&pdev->dev, sizeof(*owd), GFP_KERNEL);
 	if (!owd) {
 		dev_warn(&pdev->dev, "failed to allocate memory\n");
@@ -104,8 +104,8 @@ static int oac_watchdog_probe(struct platform_device *pdev)
 	owd->core = core;
 	owd->wdd.info = &oac_wd_info;
 	owd->wdd.ops = &oac_wd_ops;
-	owd->wdd.timeout = 10;
 	owd->wdd.min_timeout = 1;
+	owd->wdd.
 	owd->wdd.max_timeout = 60;
 	owd->wdd.parent = &pdev->dev;
 
@@ -134,6 +134,7 @@ MODULE_DEVICE_TABLE(of, oac_watchdog_of_match);
 
 static struct platform_driver oac_watchdog_driver = {
 	.probe = oac_watchdog_probe,
+	.remove = oac_watchdog_remove,
 	.driver = {
 		.name = "oac_watchdog",
 		.of_match_table = oac_watchdog_of_match,

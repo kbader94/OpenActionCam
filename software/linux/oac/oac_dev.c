@@ -6,7 +6,7 @@
 #include "oac_comms.h"
 #include "oac_dev.h"
 
-static int oac_dev_send_message(struct oac_dev *dev, struct Message *msg)
+int oac_dev_send_message(struct oac_dev *dev, struct Message *msg)
 {
 	u8 buf[OAC_MAX_PAYLOAD_SIZE + 6];
 	int len;
@@ -141,8 +141,6 @@ static int oac_dev_probe(struct serdev_device *serdev)
 	serdev_device_set_flow_control(serdev, false);
 	serdev_device_set_parity(serdev, SERDEV_PARITY_NONE);
 
-	dev->wd_ops.kick = oac_watchdog_kick;
-
 	dev_info(&serdev->dev, "Probe complete \n");
 
 	return devm_mfd_add_devices(&serdev->dev, PLATFORM_DEVID_AUTO,
@@ -152,17 +150,6 @@ static int oac_dev_probe(struct serdev_device *serdev)
 static void oac_dev_remove(struct serdev_device *serdev)
 {
 	serdev_device_close(serdev);
-}
-
-static int oac_watchdog_kick(struct oac_dev *dev)
-{
-    /* Send a heartbeat command to controller with comms via serdev */ 
-    struct Message msg = {
-        .header.message_type = OAC_MESSAGE_TYPE_COMMAND,
-        .body.payload_command.command = OAC_COMMAND_HB,
-    };
-
-    return oac_dev_send_message(dev, &msg);
 }
 
 static const struct of_device_id oac_dev_of_match[] = {

@@ -76,6 +76,7 @@ struct MessageHeader {
     uint8_t recipient;
     uint8_t message_type;
     uint8_t payload_length;
+    uint8_t checksum;
 };
 
 /* Command Payload */

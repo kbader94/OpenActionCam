@@ -39,11 +39,11 @@ enum MessageType {
 	OAC_MESSAGE_TYPE_SET	 = 0x06,
 };
 
-/* Message Header */
-struct MessageHeader {
-	u8 recipient;
-	u8 message_type;
-	u8 payload_length;
+struct __packed MessageHeader {
+    uint8_t recipient;
+    uint8_t message_type;
+    uint8_t payload_length;
+    uint8_t checksum;
 };
 
 /* Command Payload */
