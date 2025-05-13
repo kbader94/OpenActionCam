@@ -13,7 +13,9 @@ int oac_dev_send_message(struct oac_dev *dev, struct Message *msg)
 
 	len = oac_serialize_message(msg, buf, sizeof(buf));
 	if (len < 0)
-		return len;
+		return -EINVAL;
+
+	pr_info("OAC: sending message\n");
 
 	return serdev_device_write_buf(dev->serdev, buf, len);
 }

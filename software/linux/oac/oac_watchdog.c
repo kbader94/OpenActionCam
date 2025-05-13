@@ -105,7 +105,7 @@ static int oac_watchdog_probe(struct platform_device *pdev)
 	owd->wdd.info = &oac_wd_info;
 	owd->wdd.ops = &oac_wd_ops;
 	owd->wdd.min_timeout = 1;
-	owd->wdd.
+	owd->wdd.timeout =10;
 	owd->wdd.max_timeout = 60;
 	owd->wdd.parent = &pdev->dev;
 
