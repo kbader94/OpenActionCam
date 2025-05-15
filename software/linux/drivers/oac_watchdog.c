@@ -13,6 +13,7 @@ struct oac_watchdog {
 
 static int oac_wd_ping(struct watchdog_device *wdd)
 {
+	pr_info("OAC watchdog: ping\n");
 	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
 		return -EINVAL;
@@ -27,16 +28,21 @@ static int oac_wd_ping(struct watchdog_device *wdd)
 
 static int oac_wd_start(struct watchdog_device *wdd)
 {	
-	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
-	if (!owd || !owd->core)
+    struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
+    if (!owd || !owd->core){
 		return -EINVAL;
+	}
+        
+	/* Enable watchdog ping */
+	set_bit(WDOG_ACTIVE, &wdd->status);
+	set_bit(WDOG_HW_RUNNING, &wdd->status);
 
-	struct Message msg = {
-		.header.message_type = OAC_MESSAGE_TYPE_COMMAND,
-		.body.payload_command.command = OAC_COMMAND_WD_START,
-	};
+    struct Message msg = {
+        .header.message_type = OAC_MESSAGE_TYPE_COMMAND,
+        .body.payload_command.command = OAC_COMMAND_WD_START,
+    };
 
-	return oac_dev_send_message(owd->core, &msg);
+    return oac_dev_send_message(owd->core, &msg);
 }
 
 static int oac_wd_stop(struct watchdog_device *wdd)
@@ -44,6 +50,10 @@ static int oac_wd_stop(struct watchdog_device *wdd)
 	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
 		return -EINVAL;
+
+	/* Disable watchdog ping */
+	clear_bit(WDOG_ACTIVE, &wdd->status);	
+	clear_bit(WDOG_HW_RUNNING, &wdd->status);
 
 	struct Message msg = {
 		.header.message_type = OAC_MESSAGE_TYPE_COMMAND,
@@ -55,6 +65,8 @@ static int oac_wd_stop(struct watchdog_device *wdd)
 
 static int oac_wd_set_timeout(struct watchdog_device *wdd, unsigned int timeout)
 {
+	/* TODO: Implement watchdog timeout setting */
+	pr_info("OAC watchdog: set_timeout NOT IMPLEMENTED\n");
 	struct oac_watchdog *owd = watchdog_get_drvdata(wdd);
 	if (!owd || !owd->core)
 		return -ENODEV;
@@ -96,22 +108,32 @@ static int oac_watchdog_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "watchdog probe started\n");
 
 	owd = devm_kzalloc(&pdev->dev, sizeof(*owd), GFP_KERNEL);
-	if (!owd) {
-		dev_warn(&pdev->dev, "failed to allocate memory\n");
+	if (!owd)
 		return -ENOMEM;
-	}
 
 	owd->core = core;
 	owd->wdd.info = &oac_wd_info;
 	owd->wdd.ops = &oac_wd_ops;
-	owd->wdd.min_timeout = 1;
-	owd->wdd.timeout =10;
-	owd->wdd.max_timeout = 60;
 	owd->wdd.parent = &pdev->dev;
+	owd->wdd.min_timeout = 1;
+	owd->wdd.max_timeout = 60;
 
+	/* Register default timeout with system (can be overridden via devicetree or kernel cmdline) */
+	ret = watchdog_init_timeout(&owd->wdd, 10, &pdev->dev);
+	if (ret)
+		dev_warn(&pdev->dev, "unable to set default timeout, using 10s\n");
+
+	/* Prevent watchdog running after reboot */
+	watchdog_stop_on_reboot(&owd->wdd);
+
+	/* Prevents multiple watchdog devices from running simultaneously */
+	watchdog_stop_on_unregister(&owd->wdd);
+
+	/* Store driver data */
 	watchdog_set_drvdata(&owd->wdd, owd);
 	watchdog_set_nowayout(&owd->wdd, 0);
 
+	/* Finally register with core */
 	ret = devm_watchdog_register_device(&pdev->dev, &owd->wdd);
 	if (ret)
 		return dev_err_probe(&pdev->dev, ret, "failed to register watchdog\n");

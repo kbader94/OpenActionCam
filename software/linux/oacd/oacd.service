@@ -1,0 +1,16 @@
+[Unit]
+Description=Open Action Camera Daemon
+After=network.target
+
+[Service]
+StandardOutput=journal
+StandardError=journal
+ExecStart=/usr/local/bin/oacd
+Restart=on-failure
+RestartSec=5
+Type=notify
+NotifyAccess=main
+WatchdogSec=10
+
+[Install]
+WantedBy=multi-user.target

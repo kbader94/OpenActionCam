@@ -8,8 +8,8 @@ USER="$2"
 PASS="$3"
 
 # === Paths ===
-LOCAL_MODULE_DIR="$(dirname "$0")/linux/oac"
-REMOTE_DIR="/home/$USER/oac"
+LOCAL_MODULE_DIR="$(dirname "$0")/linux/drivers"
+REMOTE_DIR="/home/$USER/drivers"
 
 # === Helper ===
 check() {
