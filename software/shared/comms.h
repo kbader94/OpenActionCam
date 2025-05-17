@@ -57,7 +57,12 @@ extern "C" {
 #define COMMAND_RECORD_ENDED      0xE001
 #define COMMAND_SHUTDOWN_REQ      0xD000
 #define COMMAND_SHUTDOWN_STARTED  0xD001
-#define COMMAND_HB              0xC000
+
+#define OAC_COMMAND_WD_START          0xB000
+#define OAC_COMMAND_WD_STOP           0xB001
+#define OAC_COMMAND_WD_KICK           0xB002
+#define OAC_COMMAND_WD_SET_TO         0xB003
+
 
 /* Message Recipient Definitions */
 #define MESSAGE_RECIPIENT_LINUX 0x01
@@ -68,7 +73,9 @@ enum MessageType {
     MESSAGE_TYPE_COMMAND = 0x01,
     MESSAGE_TYPE_STATUS  = 0x02,
     MESSAGE_TYPE_ERROR   = 0x03,
-    MESSAGE_TYPE_DATA    = 0x04
+    MESSAGE_TYPE_DATA    = 0x04,
+	MESSAGE_TYPE_GET	 = 0x05,
+	MESSAGE_TYPE_SET	 = 0x06,
 };
 
 /* Message Header */
@@ -77,6 +84,15 @@ struct MessageHeader {
     uint8_t message_type;
     uint8_t payload_length;
     uint8_t checksum;
+};
+
+struct GetParamBody {
+	uint16_t param;
+};
+
+struct SetParamBody {
+	uint16_t param;
+	uint64_t val;
 };
 
 /* Command Payload */
@@ -105,6 +121,8 @@ struct Message {
         struct CommandBody payload_command;
         struct StatusBody payload_status;
         struct ErrorBody payload_error;
+        struct GetParamBody payload_get_param;
+		struct SetParamBody payload_set_param;
         uint8_t payload_raw[MAX_PAYLOAD_SIZE]; /* Raw access (used for MESSAGE_TYPE_DATA) */
     } body;
 

@@ -139,7 +139,7 @@ static int oac_dev_probe(struct serdev_device *serdev)
 	if (serdev_device_open(serdev) < 0)
 		return dev_err_probe(&serdev->dev, -ENODEV, "Failed to open serdev");
 
-	serdev_device_set_baudrate(serdev, 115200);
+	serdev_device_set_baudrate(serdev, OAC_DEV_BR);
 	serdev_device_set_flow_control(serdev, false);
 	serdev_device_set_parity(serdev, SERDEV_PARITY_NONE);
 

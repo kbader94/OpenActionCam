@@ -156,15 +156,6 @@ int comms_receive_message(struct Message *msg)
                         return -6;  /* Invalid end byte */
                     }
 
-                    uint8_t checksum = rx_buffer[expected_len - 2];
-                    uint8_t computed = comms_calculate_checksum(&rx_buffer[4], payload_len);
-                    if (checksum != computed) {
-                        receiving = false;
-                        rx_index = 0;
-                        memset(msg, 0, sizeof(struct Message));
-                        return -7;  /* Invalid checksum */
-                    }
-
                     int result = comms_deserialize_message(rx_buffer, expected_len, msg);
                     receiving = false;
                     rx_index = 0;
@@ -176,72 +167,6 @@ int comms_receive_message(struct Message *msg)
 
     return 0;  /* No message yet */
 }
-
-/*
- * comms_send_command - Send a command message to the recipient
- * @param command: The command to send
- * @return 0 on success, negative value on error
- */
-int comms_send_command(uint16_t command)
-{
-    struct Message msg;
-    msg.header.recipient = comms_recipient;
-    msg.header.message_type = MESSAGE_TYPE_COMMAND;
-    msg.header.payload_length = sizeof(struct CommandBody);
-    msg.body.payload_command.command = command;
-
-    return comms_send_message(&msg);
-}
-
-/* 
- * comms_send_error - Send an error message to the recipient
- * @param error_code: The error code to send
- * @param error_message: The error message to send (optional)
- * @return 0 on success, negative value on error 
- */
-int comms_send_error(uint8_t error_code, const char *error_message)
-{
-    struct Message msg;
-    msg.header.recipient = comms_recipient;
-    msg.header.message_type = MESSAGE_TYPE_ERROR;
-
-    msg.body.payload_error.error_code = error_code;
-
-    size_t maxlen = sizeof(msg.body.payload_error.error_message);
-    if (error_message) {
-        strncpy(msg.body.payload_error.error_message, error_message, maxlen - 1);
-        msg.body.payload_error.error_message[maxlen - 1] = '\0';
-    } else {
-        msg.body.payload_error.error_message[0] = '\0';
-    }
-
-    msg.header.payload_length = 1 + strlen(msg.body.payload_error.error_message);
-
-    return comms_send_message(&msg);
-}
-
-/* 
- * comms_send_status - Send a status message to the recipient
- * @param status: The status to send
- * @return 0 on success, negative value on error
- */
-int comms_send_status(const struct StatusBody *status)
-{
-    if (!status) return -11; /* no status provided */
-
-    struct Message msg;
-    msg.header.recipient = comms_recipient;
-    msg.header.message_type = MESSAGE_TYPE_STATUS;
-    msg.header.payload_length = sizeof(struct StatusBody);
-    memcpy(&msg.body.payload_status, status, sizeof(struct StatusBody));
-
-    return comms_send_message(&msg);
-}
-
-
-/* 
- * -------------- Internal Functions ------------------
- */
 
 /*
  * comms_send_message - Serializes and transmits a full Message to the other platform.
@@ -283,12 +208,32 @@ static int comms_send_message(const struct Message *msg)
      }
      return checksum;
  }
+
+ /* 
+ * comms_validate_checksum
+ *
+ * Validates by performing XOR checksum on the message, excluding start and end chars,
+ * but including the checksum field, such that an XOR on the aforementioned chars will yield 0
+ * when the message is intact. 
+ * @param data: the raw data of the entire message, including the start and end chars.
+ * @param len:  the length of the message
+ * @returns false if the message is corrupt.
+ *          true if the message is valid.		
+ */
+static bool comms_validate_checksum(const uint8_t *data, size_t len)
+{
+    uint8_t result = 0;
+    for (size_t i = 1; i < len - 1; i++)
+        result ^= data[i];
+
+    return result == 0;
+ }
  
  /* 
   * comms_serialize_message
   * @param msg Pointer to the message structure
   * @param out_buf Pointer to the output buffer
-  * @return < 0 on error, length of serialized message on success
+  * @return < 0 on error, total length of serialized message on success(inluding framing and header bytes)
   */
  static int comms_serialize_message(const struct Message *msg, uint8_t *out_buf)
 {
@@ -298,15 +243,15 @@ static int comms_send_message(const struct Message *msg)
     const uint8_t *payload = NULL;
     size_t payload_len = msg->header.payload_length;
 
-    // Start of frame
+    /* Start of frame */ 
     out_buf[0] = MESSAGE_START;
 
-    // Header fields
+    /* Header fields */
     out_buf[1] = msg->header.recipient;
     out_buf[2] = msg->header.message_type;
     out_buf[3] = msg->header.payload_length;
-
-    // Write payload to out_buf[5]
+    out_buf[4] = 0;
+    /* Payload */
     switch (msg->header.message_type) {
     case MESSAGE_TYPE_COMMAND:
         out_buf[5] = msg->body.payload_command.command & 0xFF;
@@ -344,14 +289,12 @@ static int comms_send_message(const struct Message *msg)
         return -3;
     }
 
-    // Compute checksum over header + payload (out_buf[1] to [4 + payload_len])
-    uint8_t csum = comms_calculate_checksum(&out_buf[1], 3 + payload_len);
-    out_buf[4] = csum;
+    /* Calculate checksum for header + payload */
+    out_buf[4] = comms_calculate_checksum(&out_buf[1], 4 + payload_len);
 
-    // End of frame
     out_buf[5 + payload_len] = MESSAGE_END;
 
-    return 6 + payload_len;  // total frame length
+    return 6 + payload_len;  /* Return total length of the message */
 }
 
 
@@ -376,11 +319,10 @@ static int comms_send_message(const struct Message *msg)
     msg->header.checksum = in_buf[4];
 
     if (length != 6 + msg->header.payload_length)
-        return -3;
+        return -3; /* Message length does not match expected length */
 
-    uint8_t computed = comms_calculate_checksum(&in_buf[1], 3 + msg->header.payload_length);
-    if (msg->header.checksum != computed)
-        return -4;
+    if (!comms_validate_checksum(in_buf,length))
+        return -4; /* Invalid checksum - corrupted message? */
 
     const uint8_t *payload = &in_buf[5];
 
@@ -426,7 +368,7 @@ static int comms_send_message(const struct Message *msg)
      int bytes_available;
  
      if (serial_fd == -1) {
-         return 0;  // Prevent reading from an invalid file descriptor
+         return 0;  /* Prevent reading from an invalid file descriptor */ 
      }
  
      if (ioctl(serial_fd, FIONREAD, &bytes_available) == -1) {
@@ -442,7 +384,7 @@ static int comms_send_message(const struct Message *msg)
      uint8_t byte;
  
      if (serial_fd == -1) {
-         return -1;  // Prevent reading from an invalid file descriptor
+         return -1;  /* Prevent reading from an invalid file descriptor */ 
      }
  
      int result = read(serial_fd, &byte, 1);

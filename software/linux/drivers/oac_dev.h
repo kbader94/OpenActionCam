@@ -3,6 +3,7 @@
 #define OAC_DEV_H
 
 #define OAC_RX_BUF_SIZE 128
+#define OAC_DEV_BR		9600
 
 #include <linux/types.h>
 #include <linux/serdev.h>

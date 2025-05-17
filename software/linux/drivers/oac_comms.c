@@ -61,13 +61,33 @@
 #include <linux/types.h>
 #include "oac_comms.h"
 
-static u8 __maybe_unused oac_calculate_checksum(const u8 *data, u8 len)
+static u8 oac_calculate_checksum(const u8 *data, u8 len)
 {
 	u8 csum = 0;
 	int i;
 	for (i = 0; i < len; i++)
 		csum ^= data[i];
 	return csum;
+}
+
+/* 
+ * oac_validate_checksum
+ *
+ * Validates by performing XOR checksum on the message, excluding start and end chars,
+ * but including the checksum field, such that an XOR on the aforementioned chars will yield 0
+ * when the message is intact. 
+ * @param data: the raw data of the entire message, including the start and end chars.
+ * @param len:  the length of the message
+ * @returns false if the message is corrupt.
+ *          true if the message is valid.		
+ */
+static bool oac_validate_checksum(const u8 *data, size_t len)
+{
+    uint8_t result = 0;
+    for (size_t i = 1; i < len - 1; i++)
+        result ^= data[i];
+
+    return result == 0;
 }
 
 int oac_serialize_message(const struct Message *msg, u8 *out_buf, size_t out_len)
@@ -111,11 +131,12 @@ int oac_serialize_message(const struct Message *msg, u8 *out_buf, size_t out_len
 	out_buf[1] = msg->header.recipient;
 	out_buf[2] = msg->header.message_type;
 	out_buf[3] = payload_size;
+	out_buf[4] = 0; /* Set to 0 for initial checksum calculation */
 
 	memcpy(&out_buf[5], payload_ptr, payload_size);
 
-	/* Compute checksum over recipient, type, length, and payload */
-	out_buf[4] = oac_calculate_checksum(&out_buf[1], 3 + payload_size);
+	/* Compute checksum for message */
+	out_buf[4] = oac_calculate_checksum(&out_buf[1], 4 + payload_size);
 
 	out_buf[5 + payload_size] = OAC_MESSAGE_END;
 
@@ -124,7 +145,6 @@ int oac_serialize_message(const struct Message *msg, u8 *out_buf, size_t out_len
 
 int oac_deserialize_message(const u8 *buf, size_t len, struct Message *msg)
 {
-	u8 payload_len;
 
 	if (!buf || !msg || len < 6)
 		return -EINVAL;
@@ -134,18 +154,18 @@ int oac_deserialize_message(const u8 *buf, size_t len, struct Message *msg)
 
 	msg->header.recipient = buf[1];
 	msg->header.message_type = buf[2];
-	payload_len = buf[3];
-	msg->header.payload_length = payload_len;
+	msg->header.payload_length = buf[3];
 	msg->header.checksum = buf[4];
 
 	/* Check length matches expectation */
-	if (len != 6 + payload_len)
+	if (len != 6 + msg->header.payload_length)
 		return -EMSGSIZE;
 
-	/* Verify checksum */
-	u8 computed = oac_calculate_checksum(&buf[1], 3 + payload_len);
-	if (computed != msg->header.checksum)
-		return -EINVAL;
+	/* Validate checksum */
+	if(!oac_validate_checksum(buf,4 + msg->header.payload_length)){
+		pr_err("invalid checksum");
+		return -EBADMSG;
+	}
 
 	switch (msg->header.message_type) {
 	case OAC_MESSAGE_TYPE_COMMAND:

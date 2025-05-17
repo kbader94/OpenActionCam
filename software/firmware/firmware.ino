@@ -260,7 +260,8 @@ void loop(void)
 
     /* Receive serial messages */
     struct Message msg = {0};
-    comms_receive_message(&msg);
+    int err = comms_receive_message(&msg);
+    WARN("Error receiving message: ");
 
     /* Process error messages */
     if (msg.header.message_type == MESSAGE_TYPE_ERROR)
@@ -291,7 +292,7 @@ void loop(void)
 
 
         if (msg.header.message_type == MESSAGE_TYPE_COMMAND &&
-            msg.body.payload_command.command == COMMAND_HB)
+            msg.body.payload_command.command == OAC_COMMAND_WD_KICK)
         {
             power_management.transitionTo(READY_STATE);
         }
