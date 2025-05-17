@@ -1,5 +1,11 @@
 /*
  * comms.c - Portable Arduino and Linux serial communication
+ * NOTE: This code was originally designed to be portable between the MCU and linux userspace
+ * HOWEVER, linux serial comms and device control logic are being moved into kernel level drivers
+ * We're retaining the userspace code here for now, and implementing kernel logic seperately.
+ * IN THE FUTURE, we'll make a decision to either include kernel portability here, 
+ * OR support comms by independent platform comms code. 
+ * 
  */
 
  #include "comms.h"
@@ -36,9 +42,6 @@
  static int comms_deserialize_message(const uint8_t *in_buf, size_t length, struct Message *msg);
  static uint8_t comms_calculate_checksum(const uint8_t *data, uint8_t length);
 
-/* 
- * -------------- Public API ------------------
- */
 
  /* 
   * @name comms_init
