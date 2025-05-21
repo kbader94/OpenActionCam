@@ -261,6 +261,13 @@ static bool comms_validate_checksum(const uint8_t *data, size_t len)
         out_buf[6] = (msg->body.payload_command.command >> 8) & 0xFF;
         break;
 
+    case MESSAGE_TYPE_RESPONSE:
+        if (payload_len != sizeof(struct ResponseBody)) return -2;
+        out_buf[5] = msg->body.payload_response.param & 0xFF;
+        out_buf[6] = (msg->body.payload_response.param >> 8) & 0xFF;
+        memcpy(&out_buf[7], &msg->body.payload_response.val, sizeof(uint64_t));
+        break;
+
     case MESSAGE_TYPE_STATUS:
         if (payload_len != sizeof(struct StatusBody)) return -2;
         memcpy(&out_buf[5], &msg->body.payload_status, payload_len);
@@ -273,19 +280,6 @@ static bool comms_validate_checksum(const uint8_t *data, size_t len)
 
     case MESSAGE_TYPE_DATA:
         memcpy(&out_buf[5], msg->body.payload_raw, payload_len);
-        break;
-
-    case MESSAGE_TYPE_SET:
-        if (payload_len != sizeof(struct SetParamBody)) return -2;
-        out_buf[5] = msg->body.payload_set_param.param & 0xFF;
-        out_buf[6] = (msg->body.payload_set_param.param >> 8) & 0xFF;
-        memcpy(&out_buf[7], &msg->body.payload_set_param.val, sizeof(uint64_t));
-        break;
-
-    case MESSAGE_TYPE_GET:
-        if (payload_len != sizeof(struct GetParamBody)) return -2;
-        out_buf[5] = msg->body.payload_get_param.param & 0xFF;
-        out_buf[6] = (msg->body.payload_get_param.param >> 8) & 0xFF;
         break;
 
     default:
@@ -334,6 +328,11 @@ static bool comms_validate_checksum(const uint8_t *data, size_t len)
         msg->body.payload_command.command = payload[0] | (payload[1] << 8);
         break;
 
+    case MESSAGE_TYPE_RESPONSE:
+        msg->body.payload_response.param = payload[0] | (payload[1] << 8);
+        memcpy(&msg->body.payload_response.val, &payload[2], sizeof(uint64_t));
+        break;    
+
     case MESSAGE_TYPE_STATUS:
         memcpy(&msg->body.payload_status, payload, sizeof(struct StatusBody));
         break;
@@ -346,15 +345,6 @@ static bool comms_validate_checksum(const uint8_t *data, size_t len)
 
     case MESSAGE_TYPE_DATA:
         memcpy(msg->body.payload_raw, payload, msg->header.payload_length);
-        break;
-
-    case MESSAGE_TYPE_SET:
-        msg->body.payload_set_param.param = payload[0] | (payload[1] << 8);
-        memcpy(&msg->body.payload_set_param.val, &payload[2], sizeof(uint64_t));
-        break;
-
-    case MESSAGE_TYPE_GET:
-        msg->body.payload_get_param.param = payload[0] | (payload[1] << 8);
         break;
 
     default:

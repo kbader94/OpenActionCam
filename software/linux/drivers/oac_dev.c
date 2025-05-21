@@ -6,6 +6,48 @@
 #include "oac_comms.h"
 #include "oac_dev.h"
 
+static oac_dev_message_cb_t oac_dev_registered_cbs[OAC_DEV_MAX_CB]; 
+static DEFINE_MUTEX(cb_lock); /* callback registration lock */
+
+static void oac_dev_message_registered_callbacks(struct oac_dev *dev, struct Message *msg)
+{
+	mutex_lock(&cb_lock);
+	for (int i = 0; i < ARRAY_SIZE(oac_dev_registered_cbs); i++) {
+		if (oac_dev_registered_cbs[i])
+			oac_dev_registered_cbs[i](dev, &msg);
+	}
+	mutex_unlock(&cb_lock);
+}
+
+int oac_dev_register_callback(struct oac_dev *core, oac_dev_message_cb_t cb)
+{
+
+	mutex_lock(&cb_lock);
+	for (int i = 0; i < ARRAY_SIZE(oac_dev_registered_cbs); i++) {
+		if (!oac_dev_registered_cbs[i]) {
+			oac_dev_registered_cbs[i] = cb;
+			mutex_unlock(&cb_lock);
+			return 0;
+		}
+	}
+	mutex_unlock(&cb_lock);
+	return -ENOMEM;
+}
+
+void oac_dev_unregister_callback(struct oac_dev *core, oac_dev_message_cb_t cb)
+{
+
+	mutex_lock(&cb_lock);
+	for (int i = 0; i < ARRAY_SIZE(oac_dev_registered_cbs); i++) {
+		if (oac_dev_registered_cbs[i] == cb) {
+			oac_dev_registered_cbs[i] = NULL;
+			break;
+		}
+	}
+	mutex_unlock(&cb_lock);
+
+}
+
 int oac_dev_send_message(struct oac_dev *dev, struct Message *msg)
 {
 	u8 buf[OAC_MAX_PAYLOAD_SIZE + 6];
@@ -84,19 +126,34 @@ static int oac_dev_receive(struct serdev_device *serdev, const u8 *data, size_t 
 				struct Message msg;
 				if (oac_deserialize_message(rx_buf, len, &msg) == 0) {
 					dev_info(&serdev->dev, "Received message type %u\n",
-						 msg.header.message_type);
-
-					if (msg.header.message_type == OAC_MESSAGE_TYPE_STATUS) {
+							 msg.header.message_type);
+				
+					switch (msg.header.message_type) {
+					case OAC_MESSAGE_TYPE_STATUS:
 						spin_lock_irqsave(&odev->status_lock, flags);
 						memcpy(&odev->latest_status,
-						       &msg.body.payload_status,
-						       sizeof(struct StatusBody));
+							   &msg.body.payload_status,
+							   sizeof(struct StatusBody));
 						spin_unlock_irqrestore(&odev->status_lock, flags);
+						break;
+				
+					case OAC_MESSAGE_TYPE_COMMAND:
+					case OAC_MESSAGE_TYPE_RESPONSE:
+					case OAC_MESSAGE_TYPE_ERROR:
+					case OAC_MESSAGE_TYPE_DATA:
+						/* Broadcast message to all registered callbacks */
+						oac_dev_dispatch_message(odev, &msg);
+						break;
+				
+					default:
+						dev_warn(&serdev->dev, "Unknown message type: %u\n",
+								 msg.header.message_type);
+						break;
 					}
-					/* TODO: handle other message types */
 				} else {
 					dev_warn(&serdev->dev, "Failed to deserialize message\n");
 				}
+				
 			}
 
 			/* Reset state for next message */

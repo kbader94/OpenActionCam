@@ -4,6 +4,7 @@
 
 #define OAC_RX_BUF_SIZE 128
 #define OAC_DEV_BR		9600
+#define OAC_DEV_MAX_CB	12
 
 #include <linux/types.h>
 #include <linux/serdev.h>
@@ -35,8 +36,16 @@ struct oac_dev {
 
 	/* Interfaces for subdevices */
 	struct oac_watchdog_ops wd_ops;
+
 };
 
+typedef void (*oac_dev_message_cb_t)(struct oac_dev *core, const struct Message *msg);
+
+int oac_dev_register_callback(struct oac_dev *core, oac_dev_message_cb_t cb);
+void oac_dev_unregister_callback(struct oac_dev *core, oac_dev_message_cb_t cb);
+
 int oac_dev_send_message(struct oac_dev *dev, struct Message *msg);
+struct list_head message_callbacks;
+
 
 #endif /* OAC_DEV_H */

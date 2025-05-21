@@ -103,13 +103,9 @@ int oac_serialize_message(const struct Message *msg, u8 *out_buf, size_t out_len
 		payload_ptr = (const u8 *)&msg->body.payload_command;
 		payload_size = sizeof(struct CommandBody);
 		break;
-	case OAC_MESSAGE_TYPE_GET:
-		payload_ptr = (const u8 *)&msg->body.payload_get_param;
-		payload_size = sizeof(struct GetParamBody);
-		break;
-	case OAC_MESSAGE_TYPE_SET:
-		payload_ptr = (const u8 *)&msg->body.payload_set_param;
-		payload_size = sizeof(struct SetParamBody);
+	case OAC_MESSAGE_TYPE_RESPONSE:
+		payload_ptr = (const u8 *)&msg->body.payload_response;
+		payload_size = sizeof(struct ResponseBody);
 		break;
 	case OAC_MESSAGE_TYPE_STATUS:
 		payload_ptr = (const u8 *)&msg->body.payload_status;
@@ -171,11 +167,8 @@ int oac_deserialize_message(const u8 *buf, size_t len, struct Message *msg)
 	case OAC_MESSAGE_TYPE_COMMAND:
 		memcpy(&msg->body.payload_command, &buf[5], sizeof(struct CommandBody));
 		break;
-	case OAC_MESSAGE_TYPE_GET:
-		memcpy(&msg->body.payload_get_param, &buf[5], sizeof(struct GetParamBody));
-		break;
-	case OAC_MESSAGE_TYPE_SET:
-		memcpy(&msg->body.payload_set_param, &buf[5], sizeof(struct SetParamBody));
+	case OAC_MESSAGE_TYPE_RESPONSE:
+		memcpy(&msg->body.payload_response, &buf[5], sizeof(struct ResponseBody));
 		break;
 	case OAC_MESSAGE_TYPE_STATUS:
 		memcpy(&msg->body.payload_status, &buf[5], sizeof(struct StatusBody));

@@ -15,6 +15,9 @@
 				oac_watchdog {
 					compatible = "oac,watchdog";
 				};
+				oac_button {
+					compatible = "oac,button";
+				}
 			};
 		};
 	};
