@@ -96,7 +96,7 @@ struct CommandBody {
 
 /* Status Payload */
 struct StatusBody {
-    float battery_voltage;
+    uint32_t bat_volt_uv;
     uint8_t state;
     bool charging;
     uint8_t error_code;

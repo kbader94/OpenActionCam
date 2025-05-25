@@ -23,7 +23,8 @@
 #define STATUS_INTERVAL_MS 500  /* Interval between status messages */ 
 
 #define BATTERY_SAMPLES 8                   /* ADC re-samples */
-#define BATTERY_VOLTAGE_OFFSET 0.15f        /* ADC offset (volts) note: actual value is 0.16 but we add 0.4V for error margin */
+#define BATTERY_MIN_UV  6000000
+#define BATTERY_MAX_UV  8450000
 
 #define CHARGER_MAX_FAULT_EDGES 4
 #define CHARGER_FAULT_INTERVAL_MIN_MS 400
@@ -164,31 +165,42 @@ void sleep_until_button_press()
 }
 
 /*
- * read_battery_voltage - Reads battery voltage via analog input (PC3 / A3).
- * @return adjusted battery voltage in volts. Adjusted with offset from BATTERY_VOLTAGE_OFFSET
+ * read_battery_voltage - Output battery voltage in microvolts
+ * @note: to read battery voltage, we perform a series of ADC samples, average the samples
+ * and adjust for the voltage divider.
+ * @return battery voltage in microvolts 
  */
-float read_battery_voltage(void)
+uint32_t read_battery_voltage(void)
 {
-    const float VREF = 5.0f;
-    const float ADC_RESOLUTION = 1023.0f;
-    const float VOLTAGE_DIVIDER_RATIO = (10.0f + 15.0f) / 15.0f;  /* 25k / 15k */
-    
+    const uint32_t VREF_UV = 5000000;            /* 5.000 V reference */ 
+    const uint16_t ADC_MAX = 1023;               /* 10-bit ADC */ 
+    const uint16_t DIVIDER_NUM = 25;             /* Voltage divider: R1 + R2 */
+    const uint16_t DIVIDER_DEN = 15;             /* Voltage divider: R2 */
+    const uint32_t OFFSET_UV = 150000;           /* Offset = 0.15 V = 150000 µV Note: This should be further verified in HW on future revisions */
+
     uint16_t sum = 0;
 
+    /* Get ADC samples */
     for (uint8_t i = 0; i < BATTERY_SAMPLES; i++) {
-        /* Start ADC conversion on PC3 / A3 (MUX1 and MUX0 set) */
-        ADMUX = (1 << REFS0) | (1 << MUX1) | (1 << MUX0);
-        ADCSRA |= (1 << ADSC);  
-        while (ADCSRA & (1 << ADSC));  /* Wait for conversion */
+        ADMUX = (1 << REFS0) | (1 << MUX1) | (1 << MUX0); /* PC3 / A3 */ 
+        ADCSRA |= (1 << ADSC);
+        while (ADCSRA & (1 << ADSC));
         sum += ADC;
     }
 
-    float avg_raw = (float)sum / BATTERY_SAMPLES;
-    float vout = (avg_raw * VREF) / ADC_RESOLUTION;
-    float vin = vout * VOLTAGE_DIVIDER_RATIO + BATTERY_VOLTAGE_OFFSET;
+    /* Average samples */
+    uint16_t avg_raw = sum / BATTERY_SAMPLES;
 
-    return vin;
+    /* Convert to microvolts */
+    uint32_t vout_uv = ((uint32_t)avg_raw * VREF_UV) / ADC_MAX;
+
+    /* Adjust for voltage divider */
+    uint32_t vin_uv = ((uint64_t)vout_uv * DIVIDER_NUM) / DIVIDER_DEN;
+    vin_uv += OFFSET_UV;
+
+    return vin_uv; /* return voltage in microvolts */
 }
+
 
 
 /* 
@@ -203,7 +215,7 @@ void transmit_status_message(void)
         last_status_time = now;
 
         struct StatusBody status = {
-            .battery_voltage = read_battery_voltage(),
+            .bat_volt_uv = read_battery_voltage(),
             .state = system_state.currentState(),
             .charging = charging, 
             .error_code = get_current_error()
@@ -265,7 +277,7 @@ void loop(void)
     /* Get button press duration */
     unsigned long button_press_duration = handle_button_press();
 
-    /* Handle state transition */
+    /* Check system conditions and transition states if necessary */
     system_state.processStateTransition(button_press_duration, &msg);
 
     /* Handle Ready State */
@@ -283,9 +295,9 @@ void loop(void)
      * TODO: async battery level reading: only read every few hundred ms. Note: battery level is 
      * subsequently read in transmit_status_message(). This can be optimized with one read on a timer.  
      */
-    float batt_lvl = read_battery_voltage();
-    if (batt_lvl < 6.0f) ERROR(ERR_LOW_BATTERY);
-    if (batt_lvl > 8.45f) ERROR(ERR_BATTERY_OV);
+    uint32_t batt_lvl = read_battery_voltage();
+    if (batt_lvl < BATTERY_MAX_UV) ERROR(ERR_LOW_BATTERY);
+    if (batt_lvl > BATTERY_MAX_UV) ERROR(ERR_BATTERY_OV);
     
     /* Update led */
     led.update();

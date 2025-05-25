@@ -102,6 +102,6 @@ static struct platform_driver oac_button_driver = {
 };
 module_platform_driver(oac_button_driver);
 
-MODULE_AUTHOR("Your Name");
+MODULE_AUTHOR("Kyle Bader");
 MODULE_DESCRIPTION("Open Action Cam Button Driver");
 MODULE_LICENSE("GPL");

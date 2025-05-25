@@ -385,12 +385,11 @@ static bool comms_validate_checksum(const uint8_t *data, size_t len)
 
     switch (msg->header.message_type) {
     case MESSAGE_TYPE_COMMAND:
-        msg->body.payload_command.command = payload[0] | (payload[1] << 8);
+        memcpy(&msg->body.payload_command, payload, sizeof(struct CommandBody));
         break;
 
     case MESSAGE_TYPE_RESPONSE:
-        msg->body.payload_response.param = payload[0] | (payload[1] << 8);
-        memcpy(&msg->body.payload_response.val, &payload[2], sizeof(uint64_t));
+        memcpy(&msg->body.payload_response, payload, sizeof(struct ResponseBody));
         break;    
 
     case MESSAGE_TYPE_STATUS:

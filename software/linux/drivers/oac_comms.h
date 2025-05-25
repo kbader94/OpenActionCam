@@ -61,7 +61,7 @@ struct ResponseBody {
 
 /* Status Payload */
 struct StatusBody {
-	float battery_voltage;
+	u32 bat_volt_uv;
 	u8 state;
 	bool charging;
 	u8 error_code;

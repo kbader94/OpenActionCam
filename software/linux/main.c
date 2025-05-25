@@ -92,8 +92,8 @@ int main(void)
             case MESSAGE_TYPE_STATUS:
             {
                 const struct StatusBody *s = &msg.body.payload_status;
-                DEBUG_MESSAGE("[STATUS] Battery: %.2fV | State: %d | Charging: %s | Error: %d\n",
-                       s->battery_voltage,
+                DEBUG_MESSAGE("[STATUS] Battery: %d µV | State: %d | Charging: %s | Error: %d\n",
+                       s->bat_volt,
                        s->state,
                        s->charging ? "Yes" : "No",
                        s->error_code);
