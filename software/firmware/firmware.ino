@@ -9,7 +9,7 @@
 #include "led.h"
 #include "error.h"
 #include "rainbow_led_animation.h"
-#include "power_management.h"
+#include "system_state.h"
 
 #define BUTTON_PIN 2   /* Button on PD2 (INT0), atmega328 physical pin 4, AKA arduino digital 2 */
 #define STAT_LED_PIN 3 /* WS2812 LED strip on PD3, atmega328 physical pin 5, AKA arduino digial 3 */
@@ -20,7 +20,6 @@
 
 #define DEBOUNCE_DELAY 50       /* Button debounce delay (ms) */
 #define LONG_PRESS_TIME 1000    /* Long press threshold (ms) */
-#define STARTUP_TIMEOUT 30000   /* 30 second startup timeout */
 #define STATUS_INTERVAL_MS 500  /* Interval between status messages */ 
 
 #define BATTERY_SAMPLES 8                   /* ADC re-samples */
@@ -38,13 +37,13 @@ uint8_t charger_fault_edge_index = 0;
 bool charger_fault = false;
 volatile bool charger_stat_last_state = HIGH;
 
-volatile unsigned long button_press_start = 0;    /* Stores when the button was pressed*/ 
-volatile unsigned long button_press_duration = 0; /* Stores how long it was held*/
+volatile unsigned long button_press_start = 0;    /* Stores when the button was pressed */ 
+volatile unsigned long button_press_duration = 0; /* Stores how long it was held */
 volatile bool button_pressed = false;
 
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
-PowerManagement power_management(&led, POWER_PIN);
+SystemStateManager system_state(&led, POWER_PIN);
 
 /* 
  * Interrupt handler for charger status
@@ -205,7 +204,7 @@ void transmit_status_message(void)
 
         struct StatusBody status = {
             .battery_voltage = read_battery_voltage(),
-            .state = power_management.currentState(),
+            .state = system_state.currentState(),
             .charging = charging, 
             .error_code = get_current_error()
         };
@@ -220,7 +219,7 @@ void setup(void)
     comms_init();
 
     /* init firmware error handler */
-    init_error_system(&led, &power_management);
+    init_error_system(&led, &system_state);
 
     /* init pins */
     pinMode(BUTTON_PIN, INPUT_PULLUP);
@@ -261,95 +260,20 @@ void loop(void)
     /* Receive serial messages */
     struct Message msg = {0};
     int err = comms_receive_message(&msg);
-    WARN("Error receiving message: ");
-
-    /* Process error messages */
-    if (msg.header.message_type == MESSAGE_TYPE_ERROR)
-    {
-        throw_error(msg.body.payload_error.error_code, msg.body.payload_error.error_message);
-    }
+    if(err < 0) WARN("Error receiving message: ");
     
     /* Get button press duration */
     unsigned long button_press_duration = handle_button_press();
 
-    /* Handle events for current power state */
-    switch (power_management.currentState())
-    {
-    case LOW_POWER_STATE:
-        if (button_press_duration > 0)
-        {
-            power_management.transitionTo(STARTUP_STATE);
-        }
-        break;
+    /* Handle state transition */
+    system_state.processStateTransition(button_press_duration, &msg);
 
-    case STARTUP_STATE:
-        if (millis() - power_management.startTime() > STARTUP_TIMEOUT)
-        {
-            ERROR(ERR_NO_COMM_RPI);
-        }
+    /* Handle Ready State */
+    if(system_state.currentState() == READY_STATE) {
+        
+        /* TODO: transmit button press duration */
 
-        // TODO: check if rx is low(rpi not yet connected). if rx is high enable serial and wait for boot/status message
-
-
-        if (msg.header.message_type == MESSAGE_TYPE_COMMAND &&
-            msg.body.payload_command.command == OAC_COMMAND_WD_KICK)
-        {
-            power_management.transitionTo(READY_STATE);
-        }
-        break;
-
-    case READY_STATE:
-        if (button_press_duration > 0 && button_press_duration < LONG_PRESS_TIME)
-        {
-            power_management.transitionTo(RECORDING_STATE);
-        }
-        else if (button_press_duration >= LONG_PRESS_TIME)
-        {
-            power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
-        }
-        break;
-
-    case RECORDING_STATE:
-        if (button_press_duration > 0 && button_press_duration < LONG_PRESS_TIME)
-        {
-            power_management.transitionTo(READY_STATE);
-        }
-        else if (button_press_duration >= LONG_PRESS_TIME)
-        {
-            power_management.transitionTo(SHUTDOWN_REQUEST_STATE);
-        }
-        break;
-
-    case SHUTDOWN_REQUEST_STATE:
-        if (millis() - power_management.shutdownRequestTime() > STARTUP_TIMEOUT)
-        {
-            ERROR(ERR_RPI_SHUTDOWN_REQ_TIMEOUT);
-        }
-
-        if (msg.header.message_type == MESSAGE_TYPE_COMMAND &&
-            msg.body.payload_command.command == COMMAND_SHUTDOWN_REQ)
-        {
-            power_management.transitionTo(SHUTDOWN_STATE);
-        }
-        break;
-
-    case SHUTDOWN_STATE:
-        if (power_management.waitForShutdown())
-        {
-            power_management.transitionTo(LOW_POWER_STATE);
-        }
-        else
-        {
-            ERROR(ERR_RPI_SHUTDOWN_TIMEOUT);
-        }
-        break;
-
-    case ERROR_STATE:
-        if (button_press_duration > 0)
-        {
-            reset_error();
-        }
-        break;
+        transmit_status_message();
     }
 
     /* Check battery level 
@@ -362,15 +286,12 @@ void loop(void)
     float batt_lvl = read_battery_voltage();
     if (batt_lvl < 6.0f) ERROR(ERR_LOW_BATTERY);
     if (batt_lvl > 8.45f) ERROR(ERR_BATTERY_OV);
-
-    /* Send current status */
-    transmit_status_message();
     
     /* Update led */
     led.update();
 
     /* Sleep - Disable peripherals and power down */
-   // if (power_management.currentState() == LOW_POWER_STATE)
+   // if (system_state.currentState() == LOW_POWER_STATE)
     //    sleep_until_button_press();
     
 }

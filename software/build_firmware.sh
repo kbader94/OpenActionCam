@@ -62,7 +62,7 @@ echo " Building Firmware"
 echo "=================================="
 
 # Compile the firmware
-arduino-cli compile --fqbn "$BOARD" --output-dir "$ARDUINO_BUILD_DIR" "$SKETCH"
+arduino-cli compile --clean --fqbn "$BOARD" --output-dir "$ARDUINO_BUILD_DIR" "$SKETCH"
 if [[ $? -ne 0 ]]; then
     echo "Firmware build failed."
     echo "Check the above error messages for more details."

@@ -42,6 +42,66 @@
  static int comms_deserialize_message(const uint8_t *in_buf, size_t length, struct Message *msg);
  static uint8_t comms_calculate_checksum(const uint8_t *data, uint8_t length);
 
+/*
+ * comms_send_command - Send a command message to the recipient
+ * @param command: The command to send
+ * @return 0 on success, negative value on error
+ */
+int comms_send_command(uint16_t command)
+{
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_COMMAND;
+    msg.header.payload_length = sizeof(struct CommandBody);
+    msg.body.payload_command.command = command;
+
+    return comms_send_message(&msg);
+}
+
+/* 
+ * comms_send_error - Send an error message to the recipient
+ * @param error_code: The error code to send
+ * @param error_message: The error message to send (optional)
+ * @return 0 on success, negative value on error 
+ */
+int comms_send_error(uint8_t error_code, const char *error_message)
+{
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_ERROR;
+
+    msg.body.payload_error.error_code = error_code;
+
+    size_t maxlen = sizeof(msg.body.payload_error.error_message);
+    if (error_message) {
+        strncpy(msg.body.payload_error.error_message, error_message, maxlen - 1);
+        msg.body.payload_error.error_message[maxlen - 1] = '\0';
+    } else {
+        msg.body.payload_error.error_message[0] = '\0';
+    }
+
+    msg.header.payload_length = 1 + strlen(msg.body.payload_error.error_message);
+
+    return comms_send_message(&msg);
+}
+
+/* 
+ * comms_send_status - Send a status message to the recipient
+ * @param status: The status to send
+ * @return 0 on success, negative value on error
+ */
+int comms_send_status(const struct StatusBody *status)
+{
+    if (!status) return -11; /* no status provided */
+
+    struct Message msg;
+    msg.header.recipient = comms_recipient;
+    msg.header.message_type = MESSAGE_TYPE_STATUS;
+    msg.header.payload_length = sizeof(struct StatusBody);
+    memcpy(&msg.body.payload_status, status, sizeof(struct StatusBody));
+
+    return comms_send_message(&msg);
+}
 
  /* 
   * @name comms_init
