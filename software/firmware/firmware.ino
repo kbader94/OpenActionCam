@@ -282,22 +282,23 @@ void loop(void)
 
     /* Handle Ready State */
     if(system_state.currentState() == READY_STATE) {
-        
+
+        /* Check battery level 
+        * NOTE: Our board uses mm3220H15NRH -  4.280V OVL, 2.800V UVL
+        * So 8.56V is the Battery absolute OV level, and 5.6V is the absolute UV level.
+        * In reality, the cells themselves are only rated for 8.4V max, with an assumed minimum of 6V.
+        * TODO: async battery level reading: only read every few hundred ms. Note: battery level is 
+        * subsequently read in transmit_status_message(). This can be optimized with one read on a timer.  
+        */
+        uint32_t batt_lvl = read_battery_voltage();
+        if (batt_lvl < BATTERY_MAX_UV) ERROR(ERR_LOW_BATTERY);
+        if (batt_lvl > BATTERY_MAX_UV) ERROR(ERR_BATTERY_OV);
+            
         /* TODO: transmit button press duration */
 
         transmit_status_message();
     }
 
-    /* Check battery level 
-     * NOTE: Our board uses mm3220H15NRH -  4.280V OVL, 2.800V UVL
-     * So 8.56V is the Battery absolute OV level, and 5.6V is the absolute UV level.
-     * In reality, the cells themselves are only rated for 8.4V max, with an assumed minimum of 6V.
-     * TODO: async battery level reading: only read every few hundred ms. Note: battery level is 
-     * subsequently read in transmit_status_message(). This can be optimized with one read on a timer.  
-     */
-    uint32_t batt_lvl = read_battery_voltage();
-    if (batt_lvl < BATTERY_MAX_UV) ERROR(ERR_LOW_BATTERY);
-    if (batt_lvl > BATTERY_MAX_UV) ERROR(ERR_BATTERY_OV);
     
     /* Update led */
     led.update();
