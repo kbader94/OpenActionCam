@@ -52,12 +52,17 @@ if echo "$REBOOT_FLAG" | grep -q "__NO_REBOOT__"; then
     echo "[*] Detected: system did NOT reboot — reloading kernel modules live"
 
     sshpass -p "$PASS" ssh "$USER@$IP" bash -c "'
-        echo \"[*] Unloading existing modules (ignore errors if not loaded)...\"
+        echo "[*] Unloading existing modules..."
         sudo rmmod oac_watchdog_driver 2>/dev/null || true
         sudo rmmod oac_driver 2>/dev/null || true
+        sudo rmmod oac_button_driver 2>/dev/null || true
+        sudo rmmod oac_battery_driver 2>/dev/null || true
 
-        echo \"[*] Reloading updated modules...\"
-        sudo modprobe oac_driver && sudo modprobe oac_watchdog_driver
+        echo "[*] Reloading updated modules..."
+        sudo modprobe oac_driver \
+        && sudo modprobe oac_watchdog_driver \
+        && sudo modprobe oac_button_driver \
+        && sudo modprobe oac_battery_driver
     '"
     check $? "Failed to reload modules live"
 

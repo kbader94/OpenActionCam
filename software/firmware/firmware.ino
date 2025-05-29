@@ -291,7 +291,7 @@ void loop(void)
         * subsequently read in transmit_status_message(). This can be optimized with one read on a timer.  
         */
         uint32_t batt_lvl = read_battery_voltage();
-        if (batt_lvl < BATTERY_MAX_UV) ERROR(ERR_LOW_BATTERY);
+        if (batt_lvl < BATTERY_MIN_UV) ERROR(ERR_LOW_BATTERY);
         if (batt_lvl > BATTERY_MAX_UV) ERROR(ERR_BATTERY_OV);
             
         /* TODO: transmit button press duration */

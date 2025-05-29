@@ -17,7 +17,10 @@
 				};
 				oac_button {
 					compatible = "oac,button";
-				}
+				};
+				oac_battery {
+					compatible = "oac,battery";
+				};
 			};
 		};
 	};

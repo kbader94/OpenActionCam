@@ -13,8 +13,10 @@ static void oac_dev_message_registered_callbacks(struct oac_dev *dev, struct Mes
 {
 	mutex_lock(&cb_lock);
 	for (int i = 0; i < ARRAY_SIZE(oac_dev_registered_cbs); i++) {
-		if (oac_dev_registered_cbs[i])
-			oac_dev_registered_cbs[i](dev, &msg);
+		if (oac_dev_registered_cbs[i]){
+			oac_dev_registered_cbs[i](dev, msg);
+		}
+			
 	}
 	mutex_unlock(&cb_lock);
 }
@@ -33,6 +35,7 @@ int oac_dev_register_callback(struct oac_dev *core, oac_dev_message_cb_t cb)
 	mutex_unlock(&cb_lock);
 	return -ENOMEM;
 }
+EXPORT_SYMBOL_GPL(oac_dev_register_callback);
 
 void oac_dev_unregister_callback(struct oac_dev *core, oac_dev_message_cb_t cb)
 {
@@ -47,6 +50,7 @@ void oac_dev_unregister_callback(struct oac_dev *core, oac_dev_message_cb_t cb)
 	mutex_unlock(&cb_lock);
 
 }
+EXPORT_SYMBOL_GPL(oac_dev_unregister_callback);
 
 int oac_dev_send_message(struct oac_dev *dev, struct Message *msg)
 {
@@ -67,7 +71,6 @@ static int oac_dev_receive(struct serdev_device *serdev, const u8 *data, size_t 
 {
 	struct oac_dev *odev = serdev_device_get_drvdata(serdev);
 	size_t i;
-	unsigned long flags;
 
 	for (i = 0; i < count; ++i) {
 		u8 byte = data[i];
@@ -99,7 +102,7 @@ static int oac_dev_receive(struct serdev_device *serdev, const u8 *data, size_t 
 		 * header (4) + payload + checksum (1) + end byte (1)
 		 */
 		if (odev->rx_pos == 3) {
-			odev->expected_len = 4 + odev->rx_buf[2] + 2;
+			odev->expected_len = 6 + odev->rx_buf[3];
 			if (odev->expected_len > OAC_RX_BUF_SIZE) {
 				dev_warn(&serdev->dev, "Invalid expected message length\n");
 				odev->receiving = false;
@@ -130,19 +133,12 @@ static int oac_dev_receive(struct serdev_device *serdev, const u8 *data, size_t 
 				
 					switch (msg.header.message_type) {
 					case OAC_MESSAGE_TYPE_STATUS:
-						spin_lock_irqsave(&odev->status_lock, flags);
-						memcpy(&odev->latest_status,
-							   &msg.body.payload_status,
-							   sizeof(struct StatusBody));
-						spin_unlock_irqrestore(&odev->status_lock, flags);
-						break;
-				
 					case OAC_MESSAGE_TYPE_COMMAND:
 					case OAC_MESSAGE_TYPE_RESPONSE:
 					case OAC_MESSAGE_TYPE_ERROR:
 					case OAC_MESSAGE_TYPE_DATA:
 						/* Broadcast message to all registered callbacks */
-						oac_dev_dispatch_message(odev, &msg);
+						oac_dev_message_registered_callbacks(odev, &msg);
 						break;
 				
 					default:
@@ -176,6 +172,14 @@ static int oac_dev_probe(struct serdev_device *serdev)
 	dev_info(&serdev->dev, "Probing oac_dev driver \n");
 	
 	static struct mfd_cell cells[] = {
+		{
+			.name = "oac_battery",
+			.of_compatible = "oac,battery",
+		},	
+		{
+			.name = "oac_button",
+			.of_compatible = "oac,button",
+		},				
 		{
 			.name = "oac_watchdog",
 			.of_compatible = "oac,watchdog",

@@ -158,7 +158,7 @@ int oac_deserialize_message(const u8 *buf, size_t len, struct Message *msg)
 		return -EMSGSIZE;
 
 	/* Validate checksum */
-	if(!oac_validate_checksum(buf,4 + msg->header.payload_length)){
+	if(!oac_validate_checksum(buf,6 + msg->header.payload_length)){
 		pr_err("invalid checksum");
 		return -EBADMSG;
 	}

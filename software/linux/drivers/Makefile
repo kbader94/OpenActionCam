@@ -2,13 +2,17 @@ KDIR := /lib/modules/$(shell uname -r)/build
 ARCH := arm64
 CROSS_COMPILE := aarch64-linux-gnu-
 
-# Two independent modules
+# Modules
 obj-m += oac_driver.o
 obj-m += oac_watchdog_driver.o
+obj-m += oac_button_driver.o
+obj-m += oac_battery_driver.o
 
-# Compose each module from source object files
+# Driver Objects
 oac_driver-objs := oac_dev.o oac_comms.o
 oac_watchdog_driver-objs := oac_watchdog.o
+oac_button_driver-objs := oac_button.o
+oac_battery_driver-objs := oac_battery.o
 
 # Device Tree Overlay
 DT_SOURCE := oac.dtso

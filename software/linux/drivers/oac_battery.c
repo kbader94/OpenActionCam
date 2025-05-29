@@ -16,10 +16,8 @@ struct oac_battery {
 	int error_code;
 };
 
-/* === Static global reference (only supports one battery) === */
-static struct oac_battery *oac_battery_device;
+static struct oac_battery *bat;
 
-/* === Power Supply Property Getter === */
 static int oac_battery_get_property(struct power_supply *psy,
 				    enum power_supply_property psp,
 				    union power_supply_propval *val)
@@ -54,54 +52,61 @@ static enum power_supply_property oac_battery_props[] = {
 	POWER_SUPPLY_PROP_HEALTH,
 };
 
-/* === Message Handler === */
-static void oac_battery_message_cb(const struct Message *msg)
+static void oac_battery_message_cb(struct oac_dev *dev, const struct Message *msg)
 {
-	if (!msg || msg->header.message_type != OAC_MESSAGE_TYPE_STATUS || !oac_battery_device)
+	
+	struct platform_device *pdev = to_platform_device(dev->serdev->dev.parent);
+
+	if (!msg || msg->header.message_type != OAC_MESSAGE_TYPE_STATUS || !bat)
 		return;
 
+	
 	const struct StatusBody *status = &msg->body.payload_status;
+	bat->voltage_uv = status->bat_volt_uv;
+	bat->charging = status->charging;
+	bat->error_code = status->error_code;
 
-	oac_battery_device->voltage_uv = status->bat_volt_uv;
-	oac_battery_device->charging = status->charging;
-	oac_battery_device->error_code = status->error_code;
 
-	power_supply_changed(oac_battery_device->psy);
+
+	power_supply_changed(bat->psy);
 }
 
-/* === Probe / Remove === */
 static int oac_battery_probe(struct platform_device *pdev)
 {
 	struct oac_dev *core = dev_get_drvdata(pdev->dev.parent);
-	struct oac_battery *bat;
+	struct power_supply_config psy_cfg = {};
 
 	bat = devm_kzalloc(&pdev->dev, sizeof(*bat), GFP_KERNEL);
 	if (!bat)
 		return -ENOMEM;
 
-	bat->core = core;
+	psy_cfg.drv_data = bat;
+	psy_cfg.of_node = pdev->dev.of_node;
 
+	bat->core = core;
 	bat->desc.name = "oac-battery";
 	bat->desc.type = POWER_SUPPLY_TYPE_BATTERY;
 	bat->desc.properties = oac_battery_props;
 	bat->desc.num_properties = ARRAY_SIZE(oac_battery_props);
 	bat->desc.get_property = oac_battery_get_property;
 
-	bat->psy = devm_power_supply_register(&pdev->dev, &bat->desc, bat);
+	bat->psy = devm_power_supply_register(&pdev->dev, &bat->desc, &psy_cfg);
 	if (IS_ERR(bat->psy))
 		return dev_err_probe(&pdev->dev, PTR_ERR(bat->psy), "Failed to register power supply\n");
 
 	platform_set_drvdata(pdev, bat);
-	oac_battery_device = bat;
 
-	return oac_dev_register_callback(core, oac_battery_message_cb);
+	if (oac_dev_register_callback(core, oac_battery_message_cb) < 0)
+		return dev_err_probe(&pdev->dev, -ENODEV, "Failed to register message callback\n");
+
+	dev_info(&pdev->dev, "Open Action Cam - battery driver initialized\n");
+	return 0;
 }
 
 static int oac_battery_remove(struct platform_device *pdev)
 {
 	struct oac_battery *bat = platform_get_drvdata(pdev);
 	oac_dev_unregister_callback(bat->core, oac_battery_message_cb);
-	oac_battery_device = NULL;
 	return 0;
 }
 

@@ -73,12 +73,12 @@ static int oac_wd_set_timeout(struct watchdog_device *wdd, unsigned int timeout)
 
 	struct Message msg = {
 		.header = {
-			.message_type = OAC_MESSAGE_TYPE_SET,
+			.message_type = OAC_MESSAGE_TYPE_RESPONSE,
 			.recipient = OAC_COMMS_RECIPIENT_FIRMWARE,
-			.payload_length = sizeof(struct SetParamBody),
+			.payload_length = sizeof(struct ResponseBody),
 		},
-		.body.payload_set_param.param = OAC_COMMAND_WD_SET_TO,
-		.body.payload_set_param.val = timeout,
+		.body.payload_response.param = OAC_COMMAND_WD_SET_TO,
+		.body.payload_response.val = timeout,
 	};
 
 	return oac_dev_send_message(owd->core, &msg);
