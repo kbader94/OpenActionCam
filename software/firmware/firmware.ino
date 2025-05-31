@@ -22,13 +22,35 @@
 #define LONG_PRESS_TIME 1000    /* Long press threshold (ms) */
 #define STATUS_INTERVAL_MS 500  /* Interval between status messages */ 
 
-#define BATTERY_SAMPLES 8                   /* ADC re-samples */
+#define BATTERY_SAMPLES 3                   /* ADC re-samples */
 #define BATTERY_MIN_UV  6000000
 #define BATTERY_MAX_UV  8450000
 
 #define CHARGER_MAX_FAULT_EDGES 4
 #define CHARGER_FAULT_INTERVAL_MIN_MS 400
 #define CHARGER_FAULT_INTERVAL_MAX_MS 600
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
+
+struct voltage_lookup_entry {
+    uint32_t voltage_uv;
+    uint8_t percent;
+};
+static const struct voltage_lookup_entry batt_table[] = {
+    {8400000, 100},
+    {8200000, 95},
+    {8000000, 90},
+    {7800000, 85},
+    {7600000, 80},
+    {7400000, 70},
+    {7200000, 60},
+    {7000000, 50},
+    {6800000, 40},
+    {6600000, 30},
+    {6400000, 20},
+    {6200000, 10},
+    {6000000, 0},
+};
 
 volatile bool charging = false;
 volatile bool charger_blink_edge_detected = false;
@@ -42,9 +64,45 @@ volatile unsigned long button_press_start = 0;    /* Stores when the button was 
 volatile unsigned long button_press_duration = 0; /* Stores how long it was held */
 volatile bool button_pressed = false;
 
+
+
 Adafruit_NeoPixel led_strip(1, STAT_LED_PIN, NEO_GRB + NEO_KHZ800);
 Led led(&led_strip, 0);
 SystemStateManager system_state(&led, POWER_PIN);
+
+/* 
+ * Convert battery voltage to percentage by interpolating between known values.
+ * @param voltage_uv Battery voltage in microvolts
+ * @return Percentage of battery voltage (0-100)
+ */
+uint8_t voltage_to_percent(uint32_t voltage_uv)
+{
+    int i;
+
+    /* Handle out-of-bounds cases */ 
+    if (voltage_uv >= batt_table[0].voltage_uv)
+        return 100;
+    if (voltage_uv <= batt_table[ARRAY_SIZE(batt_table) - 1].voltage_uv)
+        return 0;
+
+    /* Linear interpolation */ 
+    for (i = 0; i < ARRAY_SIZE(batt_table) - 1; ++i) {
+        const struct voltage_lookup_entry *upper = &batt_table[i];
+        const struct voltage_lookup_entry *lower = &batt_table[i + 1];
+
+        /* Get upper and lower percentages from table entries */
+        if (voltage_uv <= upper->voltage_uv && voltage_uv >= lower->voltage_uv) {
+            /* Interpolate between upper and lower percentages */ 
+            uint32_t delta_v = upper->voltage_uv - lower->voltage_uv;
+            uint32_t delta_p = upper->percent - lower->percent;
+            uint32_t v_rel = voltage_uv - lower->voltage_uv;
+
+            return lower->percent + (v_rel * delta_p) / delta_v;
+        }
+    }
+
+    return 0;
+}
 
 /* 
  * Interrupt handler for charger status
@@ -188,13 +246,9 @@ uint32_t read_battery_voltage(void)
         sum += ADC;
     }
 
-    /* Average samples */
+    /* Average samples, convert to microvolts, and add offset */
     uint16_t avg_raw = sum / BATTERY_SAMPLES;
-
-    /* Convert to microvolts */
     uint32_t vout_uv = ((uint32_t)avg_raw * VREF_UV) / ADC_MAX;
-
-    /* Adjust for voltage divider */
     uint32_t vin_uv = ((uint64_t)vout_uv * DIVIDER_NUM) / DIVIDER_DEN;
     vin_uv += OFFSET_UV;
 
@@ -206,7 +260,7 @@ uint32_t read_battery_voltage(void)
 /* 
  * transmit_status_message - Periodically send a status to linux system via comms.
  */
-void transmit_status_message(void)
+void transmit_status_message(uint32_t voltage_uV)
 {
     static unsigned long last_status_time = 0;
     unsigned long now = millis();
@@ -215,7 +269,8 @@ void transmit_status_message(void)
         last_status_time = now;
 
         struct StatusBody status = {
-            .bat_volt_uv = read_battery_voltage(),
+            .bat_volt_uv = voltage_uV,
+            .bat_lvl = voltage_to_percent(voltage_uV),
             .state = system_state.currentState(),
             .charging = charging, 
             .error_code = get_current_error()
@@ -291,12 +346,13 @@ void loop(void)
         * subsequently read in transmit_status_message(). This can be optimized with one read on a timer.  
         */
         uint32_t batt_lvl = read_battery_voltage();
+
         if (batt_lvl < BATTERY_MIN_UV) ERROR(ERR_LOW_BATTERY);
         if (batt_lvl > BATTERY_MAX_UV) ERROR(ERR_BATTERY_OV);
             
         /* TODO: transmit button press duration */
 
-        transmit_status_message();
+        transmit_status_message(batt_lvl);
     }
 
     

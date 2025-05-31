@@ -62,6 +62,7 @@ struct ResponseBody {
 /* Status Payload */
 struct StatusBody {
 	u32 bat_volt_uv;
+	uint8_t bat_lvl;
 	u8 state;
 	bool charging;
 	u8 error_code;
