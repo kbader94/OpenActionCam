@@ -86,7 +86,7 @@ static enum power_supply_property oac_battery_props[] = {
  * @dev: Pointer to oac_dev structure
  * @msg: Pointer to received Message
  *
- * Triggers shutdown if battery voltage is critically low.
+ * Note: Triggers shutdown if battery voltage is critically low.
  */
 static void oac_battery_message_cb(struct oac_dev *dev, const struct Message *msg)
 {
