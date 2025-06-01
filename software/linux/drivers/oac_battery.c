@@ -6,7 +6,10 @@
 #include "oac_dev.h"
 #include "oac_comms.h"
 
-#define ENERGY_FULL_DESIGN_UWH 48840000  /* 7.4V * 6.6aH = 48.84Wh */
+#define BATTERY_FULL_UWH 48840000  /* 7.4V * 6.6aH = 48.84Wh */
+#define BATTERY_MIN_UV  6000000 
+#define BATTERY_MAX_UV  8450000
+#define BATTERY_CRITICAL_UV 6050000 
 
 struct oac_battery {
 	struct power_supply *psy;
@@ -20,6 +23,7 @@ struct oac_battery {
 };
 
 static struct oac_battery *bat;
+static atomic_t shutdown_triggered = ATOMIC_INIT(0);
 
 static int oac_battery_get_property(struct power_supply *psy,
 	enum power_supply_property psp,
@@ -42,17 +46,20 @@ static int oac_battery_get_property(struct power_supply *psy,
 		val->intval = bat->bat_lvl;
 		break;
 	case POWER_SUPPLY_PROP_ENERGY_NOW:
-		val->intval = (bat->bat_lvl * ENERGY_FULL_DESIGN_UWH) / 100;
+		val->intval = (bat->bat_lvl * BATTERY_FULL_UWH) / 100;
 		break;
 	case POWER_SUPPLY_PROP_ENERGY_FULL:
 	case POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN:
-		val->intval = ENERGY_FULL_DESIGN_UWH;
+		val->intval = BATTERY_FULL_UWH;
 		break;
 	case POWER_SUPPLY_PROP_ENERGY_EMPTY:
 		val->intval = 0;
 		break;
 	case POWER_SUPPLY_PROP_HEALTH:
 		val->intval = POWER_SUPPLY_HEALTH_GOOD;
+		break;
+	case POWER_SUPPLY_PROP_TECHNOLOGY:
+		val->intval = POWER_SUPPLY_TECHNOLOGY_LION;
 		break;
 	default:
 		return -EINVAL;
@@ -71,10 +78,20 @@ static enum power_supply_property oac_battery_props[] = {
 	POWER_SUPPLY_PROP_ENERGY_FULL_DESIGN,
 	POWER_SUPPLY_PROP_ENERGY_EMPTY,
 	POWER_SUPPLY_PROP_HEALTH,
+	POWER_SUPPLY_PROP_TECHNOLOGY
 };
 
+/**
+ * oac_battery_message_cb - Callback invoked when a status message is received.
+ * @dev: Pointer to oac_dev structure
+ * @msg: Pointer to received Message
+ *
+ * Triggers shutdown if battery voltage is critically low.
+ */
 static void oac_battery_message_cb(struct oac_dev *dev, const struct Message *msg)
 {
+	struct platform_device *pdev = to_platform_device(dev->serdev->dev.parent);
+	bool shutdown_not_triggered = atomic_cmpxchg(&shutdown_triggered, 0, 1) == 0;
 
 	if (!msg || msg->header.message_type != OAC_MESSAGE_TYPE_STATUS || !bat)
 		return;
@@ -86,6 +103,16 @@ static void oac_battery_message_cb(struct oac_dev *dev, const struct Message *ms
 	bat->error_code = status->error_code;
 
 	power_supply_changed(bat->psy);
+
+	/* If battery is critically low, trigger a shutdown */
+	if (bat->voltage_uv <= BATTERY_CRITICAL_UV && shutdown_not_triggered) {
+		dev_emerg(&pdev->dev, "Battery critically low (%d%%), shutting down\n", bat->bat_lvl);
+		if (orderly_poweroff(true)) {
+			dev_emerg(&pdev->dev, "orderly_poweroff() failed — forcing kernel_power_off()\n");
+			kernel_power_off();
+		}
+	}
+
 }
 
 static int oac_battery_probe(struct platform_device *pdev)
